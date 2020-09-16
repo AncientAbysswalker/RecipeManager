@@ -90,9 +90,11 @@ MongoClient.connect(
 
       // [GET] the data for one recipe using its db id, with optional filtering
       app.get("/recipes/:id", (request, response) => {
-        console.log(
-          `Recieved ${c_yel("[GET]")} request for id ${request.params.id}`
-        );
+        logGet(request.originalUrl);
+
+        // logRequest(
+        //   `Recieved ${c_yel("[GET]")} request for id ${request.params.id}`
+        // );
 
         // First confirm that the id request is OK
         try {
@@ -101,7 +103,7 @@ MongoClient.connect(
           try {
             recipes.findOne({ _id: id }, (err, result) => {
               if (!err) {
-                console.log(
+                logSuccess(
                   `${c_yel("[GET]")} request ${c_grn("successful")}\n`
                 );
                 fs.appendFileSync(
@@ -137,7 +139,7 @@ MongoClient.connect(
             });
           }
         } catch {
-          console.log(
+          logFailure(
             "The id provided must be a single string of 12 bytes or 24 hex characters"
           );
           response.status(400).send({
@@ -178,6 +180,70 @@ function c_red(str) {
 }
 function stripColor(str) {
   return str.replace(/\x1b\[[0-9]+m/g, "");
+}
+
+function enforceTwoDigit(num) {
+  return num > 9 ? num : "0" + num;
+}
+
+function getCLFDate() {
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  let date = new Date();
+
+  let dd = enforceTwoDigit(date.getDate());
+  let mmm = months[date.getMonth()];
+  let yyyy = date.getFullYear();
+  let HH = enforceTwoDigit(date.getHours());
+  let MM = enforceTwoDigit(date.getMinutes());
+  let SS = enforceTwoDigit(date.getSeconds());
+  let zzzz = "0000";
+
+  return `${dd}/${mmm}/${yyyy}:${HH}:${MM}:${SS} ${zzzz}`;
+}
+
+function logGet(req) {
+  return logRequest("[GET]", req);
+}
+
+function logRequest(method, req) {
+  let clf_date = getCLFDate();
+  let clf = "- - - [" + clf_date + "]";
+  console.log(`Recieved ${c_yel(method)} request ${c_cyn(req)}`);
+
+  console.log(clf);
+  // fs.appendFile(
+  //   "./log_req.txt",
+  //   stripColor(req),
+  //   () => {} // No Callback Needed
+  // );
+
+  return clf_date;
+}
+
+function logFailure(str) {
+  console.log(str);
+  fs.appendFile(
+    "./log_err.txt",
+    stripColor(str),
+    () => {} // No Callback Needed
+  );
+}
+
+function logSuccess(str) {
+  console.log(str);
 }
 
 function paramToList(param) {
