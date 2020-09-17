@@ -34,6 +34,9 @@ MongoClient.connect(
 
       // [POST] a new recipe to the mongo db
       app.post("/recipes", (request, response) => {
+        // Log request and save time of request
+        let time_req = logPost(request.originalUrl);
+
         try {
           // Build new entry from request body. Any fields not included will become null
           let new_entry = {
@@ -47,23 +50,30 @@ MongoClient.connect(
           // Insert one recipe
           recipes.insertOne(new_entry, (err, result) => {
             if (!err) {
+              logSuccess("POST", request.originalUrl, time_req, 201);
               response.status(201).send(result.ops[0]);
             } else {
+              logFailure("POST", request.originalUrl, time_req, 500, err);
               response.status(500).send({
+                status: 500,
                 message: "Internal database exception",
               });
             }
           });
         } catch (err) {
-          // Switch here for errors
-          response.status(400).send({
-            message: "Incorrect or insufficient data in [POST] body",
+          logFailure("POST", request.originalUrl, time_req, 500, err);
+          response.status(500).send({
+            status: 500,
+            message: "Internal database exception",
           });
         }
       });
 
       // [GET] the data for all recipes, with optional filtering
       app.get("/recipes", (request, response) => {
+        // Log request and save time of request
+        let time_req = logGet(request.originalUrl);
+
         try {
           // Ensure that the fields will always be a list
           let fields = paramToList(request.query.fields);
@@ -74,30 +84,34 @@ MongoClient.connect(
             .project(fields.reduce((a, b) => ((a[b] = 1), a), {}))
             .toArray((err, result) => {
               if (!err) {
+                logSuccess("GET", request.originalUrl, time_req, 200);
                 response.json(result);
               } else {
-                console.log("Query Error:", err);
+                logFailure("GET", request.originalUrl, time_req, 500, err);
                 response.status(500).send({
+                  status: 500,
                   message: "Internal database exception",
                 });
               }
             });
         } catch (err) {
-          // Switch here for errors
-          response.status(400).send({
-            message: "Incorrect or insufficient data in [POST] body",
+          logFailure("GET", request.originalUrl, time_req, 500, err);
+          response.status(500).send({
+            status: 500,
+            message: "Internal database exception",
           });
         }
       });
 
       // [GET] the data for one recipe using its db id, with optional filtering
       app.get("/recipes/:id", (request, response) => {
+        // Log request and save time of request
         let time_req = logGet(request.originalUrl);
 
         // First confirm that the id request is OK
         try {
+          // Get the id in the appropriate format
           let id = new mongo.ObjectID(request.params.id);
-
           try {
             recipes.findOne({ _id: id }, (err, result) => {
               if (!err) {
@@ -119,19 +133,18 @@ MongoClient.connect(
                   });
                 }
               } else {
-                console.log(c_red("Query Error:"), err);
+                logFailure("GET", request.originalUrl, time_req, 500, err);
                 response.status(500).send({
+                  status: 500,
                   message: "Internal database exception",
                 });
               }
             });
           } catch (err) {
-            console.log(err.name);
-            console.log(err.message);
-            console.log(err.stack);
-            // Switch here for errors
-            response.status(400).send({
-              message: "Incorrect or insufficient data in [POST] body",
+            logFailure("GET", request.originalUrl, time_req, 500, err);
+            response.status(500).send({
+              status: 500,
+              message: "Internal database exception",
             });
           }
 
@@ -227,6 +240,11 @@ function getCLFDate() {
 // Log timestamp and that a GET request is recieved to console. Return timestamp of request
 function logGet(req) {
   return logRequest("[GET]", req);
+}
+
+// Log timestamp and that a POST request is recieved to console. Return timestamp of request
+function logPost(req) {
+  return logRequest("[POST]", req);
 }
 
 // Log timestamp and that request is recieved to console. Return timestamp of request
