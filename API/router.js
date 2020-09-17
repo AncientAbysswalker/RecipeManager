@@ -14,12 +14,14 @@ const MongoClient = mongo.MongoClient;
 let bodyParser = require("body-parser");
 app.use(bodyParser.json());
 
-// Log that process is starting
-console.log(c_cyn("Attempting to start mongo router"));
-
 // Parse args for process
 let p_args = process.argv.slice(2);
-let log_file = !p_args.includes("-nolog");
+let log_requests = !p_args.includes("--nolog-req");
+let log_errors = !p_args.includes("--nolog-err");
+let color_disabled = p_args.includes("--nocolor");
+
+// Log that process is starting
+console.log(c_cyn("Attempting to start mongo router"));
 
 // Connect to the db and listen
 MongoClient.connect(
@@ -90,11 +92,7 @@ MongoClient.connect(
 
       // [GET] the data for one recipe using its db id, with optional filtering
       app.get("/recipes/:id", (request, response) => {
-        logGet(request.originalUrl);
-
-        // logRequest(
-        //   `Recieved ${c_yel("[GET]")} request for id ${request.params.id}`
-        // );
+        let time_req = logGet(request.originalUrl);
 
         // First confirm that the id request is OK
         try {
@@ -103,20 +101,18 @@ MongoClient.connect(
           try {
             recipes.findOne({ _id: id }, (err, result) => {
               if (!err) {
-                logSuccess(
-                  `${c_yel("[GET]")} request ${c_grn("successful")}\n`
-                );
-                fs.appendFileSync(
-                  "./log.txt",
-                  stripColor(
-                    `${c_yel("[GET]")} request ${c_grn("successful")}\n`
-                  )
-                );
-
                 // If response is null, respond 404
                 if (result !== null) {
+                  logSuccess("GET", request.originalUrl, time_req, 200);
                   response.json(result);
                 } else {
+                  logFailure(
+                    "GET",
+                    request.originalUrl,
+                    time_req,
+                    404,
+                    "The requested resource could not be found"
+                  );
                   response.status(404).send({
                     status: 404,
                     message: "The requested resource could not be found",
@@ -138,8 +134,14 @@ MongoClient.connect(
               message: "Incorrect or insufficient data in [POST] body",
             });
           }
+
+          // If the wrong number of bytes is provided
         } catch {
           logFailure(
+            "GET",
+            request.originalUrl,
+            time_req,
+            400,
             "The id provided must be a single string of 12 bytes or 24 hex characters"
           );
           response.status(400).send({
@@ -155,7 +157,7 @@ MongoClient.connect(
         console.log(c_grn("Mongo router successfully started on port 3000"));
         console.log(
           ` - Logging to file is currently ${
-            log_file ? c_grn("enabled") : c_red("disabled")
+            log_requests ? c_grn("enabled") : c_red("disabled")
           }\n`
         );
       });
@@ -167,25 +169,32 @@ MongoClient.connect(
 
 // Color interrupt functions for in-console strings
 function c_yel(str) {
-  return `\x1b[33m${str}\x1b[0m`;
+  return color_disabled ? str : `\x1b[33m${str}\x1b[0m`;
 }
 function c_grn(str) {
-  return `\x1b[32m${str}\x1b[0m`;
+  return color_disabled ? str : `\x1b[32m${str}\x1b[0m`;
 }
 function c_cyn(str) {
-  return `\x1b[36m${str}\x1b[0m`;
+  return color_disabled ? str : `\x1b[36m${str}\x1b[0m`;
 }
 function c_red(str) {
-  return `\x1b[31m${str}\x1b[0m`;
+  return color_disabled ? str : `\x1b[31m${str}\x1b[0m`;
 }
 function stripColor(str) {
   return str.replace(/\x1b\[[0-9]+m/g, "");
 }
 
+// Convert a number to a two-digit number
 function enforceTwoDigit(num) {
   return num > 9 ? num : "0" + num;
 }
 
+// Build the CLF string
+function buildCLF(ip, uid, time_req, method, req, status, size) {
+  return `${ip} - ${uid} [${time_req}] "${method} ${req}" ${status} ${size}\n`;
+}
+
+// Build a time stamp for the CLF format
 function getCLFDate() {
   const months = [
     "Jan",
@@ -201,8 +210,9 @@ function getCLFDate() {
     "Nov",
     "Dec",
   ];
-  let date = new Date();
 
+  // Get the time string bits
+  let date = new Date();
   let dd = enforceTwoDigit(date.getDate());
   let mmm = months[date.getMonth()];
   let yyyy = date.getFullYear();
@@ -214,38 +224,61 @@ function getCLFDate() {
   return `${dd}/${mmm}/${yyyy}:${HH}:${MM}:${SS} ${zzzz}`;
 }
 
+// Log timestamp and that a GET request is recieved to console. Return timestamp of request
 function logGet(req) {
   return logRequest("[GET]", req);
 }
 
+// Log timestamp and that request is recieved to console. Return timestamp of request
 function logRequest(method, req) {
   let clf_date = getCLFDate();
-  let clf = "- - - [" + clf_date + "]";
-  console.log(`Recieved ${c_yel(method)} request ${c_cyn(req)}`);
 
-  console.log(clf);
-  // fs.appendFile(
-  //   "./log_req.txt",
-  //   stripColor(req),
-  //   () => {} // No Callback Needed
-  // );
+  console.log(clf_date);
+  console.log(`Recieved ${c_yel(method)} request ${c_cyn(req)}`);
 
   return clf_date;
 }
 
-function logFailure(str) {
-  console.log(str);
-  fs.appendFile(
-    "./log_err.txt",
-    stripColor(str),
-    () => {} // No Callback Needed
-  );
+// Log an error on the console and log the data to the error log file if not disabled
+function logFailure(method, req, time_req, status, err_str) {
+  // Log to console
+  console.log(`Request ${c_red("failed")} with status ${c_cyn(status)}\n`);
+
+  // Log request to clf log file
+  if (log_requests) {
+    fs.appendFile(
+      "./log_req.txt",
+      buildCLF("-", "-", time_req, method, req, status, "size"),
+      () => {} // No Callback Needed
+    );
+  }
+
+  // Log request to error log file
+  if (log_errors) {
+    fs.appendFile(
+      "./log_err.txt",
+      `${time_req}\n${err_str}\n\n`,
+      () => {} // No Callback Needed
+    );
+  }
 }
 
-function logSuccess(str) {
-  console.log(str);
+// Log a success on the console and log the data to the clf log file if not disabled
+function logSuccess(method, req, time_req, status) {
+  // Log to console
+  console.log(`Request ${c_grn("successful")} with status ${c_cyn(status)}\n`);
+
+  // Log request to clf log file
+  if (log_requests) {
+    fs.appendFile(
+      "./log_req.txt",
+      buildCLF("-", "-", time_req, method, req, status, "size"),
+      () => {} // No Callback Needed
+    );
+  }
 }
 
+// Return a list, string, or null as a list, for purposes of query projection
 function paramToList(param) {
   switch (typeof param) {
     case "string":
