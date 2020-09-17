@@ -82,10 +82,27 @@ MongoClient.connect(
           recipes
             .find()
             .project(fields.reduce((a, b) => ((a[b] = 1), a), {}))
-            .toArray((err, result) => {
+            .toArray((err, result_raw) => {
+              // Strip result of any entries only containing _id
+              let result = filterEmpty(result_raw, fields.includes("_id"));
+
               if (!err) {
-                logSuccess("GET", request.originalUrl, time_req, 200);
-                response.json(result);
+                if (result.length !== 0) {
+                  logSuccess("GET", request.originalUrl, time_req, 200);
+                  response.json(result);
+                } else {
+                  logFailure(
+                    "GET",
+                    request.originalUrl,
+                    time_req,
+                    404,
+                    "The requested resource could not be found"
+                  );
+                  response.status(404).send({
+                    status: 404,
+                    message: "The requested resource could not be found",
+                  });
+                }
               } else {
                 logFailure("GET", request.originalUrl, time_req, 500, err);
                 response.status(500).send({
@@ -113,33 +130,46 @@ MongoClient.connect(
           // Get the id in the appropriate format
           let id = new mongo.ObjectID(request.params.id);
           try {
-            recipes.findOne({ _id: id }, (err, result) => {
-              if (!err) {
-                // If response is null, respond 404
-                if (result !== null) {
-                  logSuccess("GET", request.originalUrl, time_req, 200);
-                  response.json(result);
+            // Ensure that the fields will always be a list
+            let fields = paramToList(request.query.fields);
+            console.log(fields);
+            console.log(fields.reduce((a, b) => ((a[b] = 1), a), {}));
+
+            recipes.findOne(
+              { _id: id },
+              { projection: fields.reduce((a, b) => ((a[b] = 1), a), {}) },
+              (err, result_raw) => {
+                // Return result as null if only has _id field
+                let result =
+                  Object.keys(result_raw).length !== 1 ? result_raw : null;
+
+                if (!err) {
+                  // If response is null, respond 404
+                  if (result !== null) {
+                    logSuccess("GET", request.originalUrl, time_req, 200);
+                    response.json(result);
+                  } else {
+                    logFailure(
+                      "GET",
+                      request.originalUrl,
+                      time_req,
+                      404,
+                      "The requested resource could not be found"
+                    );
+                    response.status(404).send({
+                      status: 404,
+                      message: "The requested resource could not be found",
+                    });
+                  }
                 } else {
-                  logFailure(
-                    "GET",
-                    request.originalUrl,
-                    time_req,
-                    404,
-                    "The requested resource could not be found"
-                  );
-                  response.status(404).send({
-                    status: 404,
-                    message: "The requested resource could not be found",
+                  logFailure("GET", request.originalUrl, time_req, 500, err);
+                  response.status(500).send({
+                    status: 500,
+                    message: "Internal database exception",
                   });
                 }
-              } else {
-                logFailure("GET", request.originalUrl, time_req, 500, err);
-                response.status(500).send({
-                  status: 500,
-                  message: "Internal database exception",
-                });
               }
-            });
+            );
           } catch (err) {
             logFailure("GET", request.originalUrl, time_req, 500, err);
             response.status(500).send({
@@ -306,4 +336,9 @@ function paramToList(param) {
     default:
       return [];
   }
+}
+
+// Strip a list of objects of any object that has only one key
+function filterEmpty(ls, override = false) {
+  return override ? ls : ls.filter((obj) => Object.keys(obj).length !== 1);
 }
