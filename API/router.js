@@ -198,11 +198,12 @@ MongoClient.connect(
       // Indicate successful start in the console
       app.listen(3000, function() {
         console.log(c_grn("Mongo router successfully started on port 3000"));
-        console.log(
-          ` - Logging to file is currently ${
-            log_requests ? c_grn("enabled") : c_red("disabled")
-          }\n`
-        );
+        logOption("Logging of requests to file", log_requests);
+        logOption("Logging of errors to file", log_errors);
+        logOption("Monochrome white text", color_disabled);
+
+        // Extra newline
+        console.log();
       });
     } else {
       console.log(c_red("Mongo router failed to start:"), client_err);
@@ -324,6 +325,14 @@ function logSuccess(method, req, time_req, status) {
       () => {} // No Callback Needed
     );
   }
+}
+
+// Log application options on startup to the console
+function logOption(option, bool) {
+  // Log to console
+  console.log(
+    `- ${option} is currently ${bool ? c_grn("enabled") : c_red("disabled")}`
+  );
 }
 
 // Return a list, string, or null as a list, for purposes of query projection
