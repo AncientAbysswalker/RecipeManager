@@ -138,17 +138,10 @@ MongoClient.connect(
             recipes.findOne(
               { _id: id },
               { projection: fields.reduce((a, b) => ((a[b] = 1), a), {}) },
-              (err, result_raw) => {
-                // Return result as null if only has _id field
-                let result =
-                  Object.keys(result_raw).length !== 1 ? result_raw : null;
-
+              (err, result) => {
                 if (!err) {
-                  // If response is null, respond 404
-                  if (result !== null) {
-                    logSuccess("GET", request.originalUrl, time_req, 200);
-                    response.json(result);
-                  } else {
+                  // If response is null or only the _id, respond 404
+                  if (result === null || Object.keys(result).length === 1) {
                     logFailure(
                       "GET",
                       request.originalUrl,
@@ -160,6 +153,9 @@ MongoClient.connect(
                       status: 404,
                       message: "The requested resource could not be found",
                     });
+                  } else {
+                    logSuccess("GET", request.originalUrl, time_req, 200);
+                    response.json(result);
                   }
                 } else {
                   logFailure("GET", request.originalUrl, time_req, 500, err);
