@@ -2,9 +2,15 @@
 const express = require("express");
 const app = express();
 const fs = require("fs");
+const path = require("path");
+const multer = require("multer");
+const { v4: uuidv4 } = require("uuid");
 
 // Load config
 const config = require("./config.js");
+
+// Load Routings
+const router_images = require("./router_images");
 
 // Retrieve Mongo Client
 const mongo = require("mongodb");
@@ -31,6 +37,16 @@ MongoClient.connect(
     if (!client_err) {
       let db = client.db(config.db);
       let recipes = db.collection("recipes");
+
+      // Enable CORS -- Or use unsafe mode on chrome (I do now)
+      // app.use((req, res, next) => {
+      //   res.header("Access-Control-Allow-Origin", "http://localhost:8080"); // update to match the domain you will make the request from
+      //   res.header(
+      //     "Access-Control-Allow-Headers",
+      //     "Origin, X-Requested-With, Content-Type, Accept"
+      //   );
+      //   next();
+      // });
 
       // [POST] a new recipe to the mongo db
       app.post("/recipes", (request, response) => {
@@ -132,8 +148,6 @@ MongoClient.connect(
           try {
             // Ensure that the fields will always be a list
             let fields = paramToList(request.query.fields);
-            console.log(fields);
-            console.log(fields.reduce((a, b) => ((a[b] = 1), a), {}));
 
             recipes.findOne(
               { _id: id },
@@ -190,6 +204,36 @@ MongoClient.connect(
           });
         }
       });
+
+      // // Handle Images
+      // var storage = multer.diskStorage({
+      //   destination: (req, file, cb) => {
+      //     cb(null, "/data/images");
+      //   },
+      //   filename: (req, file, cb) => {
+      //     cb(
+      //       null,
+      //       uuidv4() + path.extname(file.originalname) //file.fieldname + "-" + Date.now() + path.extname(file.originalname)
+      //     );
+      //   },
+      // });
+      // //will be using this for uplading
+      // const upload = multer({ storage: storage });
+      // app.use("/images", express.static("/data/images")); //, serveIndex('/data/images', {'icons': true}));
+      // app.post("/testUpload", upload.single("profile_pic"), (req, res) => {
+      //   console.log(req.file.path);
+      //   return res.status(201).send({
+      //     status: 201,
+      //     message: "Saved Image",
+      //   });
+      // });
+      app.use("/images", router_images);
+
+      // Host Documentation
+      app.get("/", (request, response) => {
+        response.redirect("/documentation");
+      });
+      app.use("/documentation", express.static("/data/documentation"));
 
       // Indicate successful start in the console
       app.listen(3000, function() {
