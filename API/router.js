@@ -1,13 +1,10 @@
-/* eslint-disable no-control-regex */
 const express = require("express");
 const app = express();
-const fs = require("fs");
-const path = require("path");
-const multer = require("multer");
-const { v4: uuidv4 } = require("uuid");
 
 // Load config
 const config = require("./routes/config.js");
+
+// Load builder for CLF
 
 // Load Routings
 const route_images = require("./routes/images");
@@ -64,105 +61,6 @@ app.get("/", (request, response) => {
   response.redirect("/documentation");
 });
 app.use("/documentation", express.static("/data/documentation"));
-
-// Convert a number to a two-digit number
-function enforceTwoDigit(num) {
-  return num > 9 ? num : "0" + num;
-}
-
-// Build the CLF string
-function buildCLF(ip, uid, time_req, method, req, status, size) {
-  return `${ip} - ${uid} [${time_req}] "${method} ${req}" ${status} ${size}\n`;
-}
-
-// Build a time stamp for the CLF format
-function getCLFDate() {
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-
-  // Get the time string bits
-  let date = new Date();
-  let dd = enforceTwoDigit(date.getDate());
-  let mmm = months[date.getMonth()];
-  let yyyy = date.getFullYear();
-  let HH = enforceTwoDigit(date.getHours());
-  let MM = enforceTwoDigit(date.getMinutes());
-  let SS = enforceTwoDigit(date.getSeconds());
-  let zzzz = "0000";
-
-  return `${dd}/${mmm}/${yyyy}:${HH}:${MM}:${SS} ${zzzz}`;
-}
-
-// Log timestamp and that a GET request is recieved to console. Return timestamp of request
-function logGet(req) {
-  return logRequest("[GET]", req);
-}
-
-// Log timestamp and that a POST request is recieved to console. Return timestamp of request
-function logPost(req) {
-  return logRequest("[POST]", req);
-}
-
-// Log timestamp and that request is recieved to console. Return timestamp of request
-function logRequest(method, req) {
-  let clf_date = getCLFDate();
-
-  console.log(clf_date);
-  console.log(`Recieved ${c.yel(method)} request ${c.cyn(req)}`);
-
-  return clf_date;
-}
-
-// Log an error on the console and log the data to the error log file if not disabled
-function logFailure(method, req, time_req, status, err_str) {
-  // Log to console
-  console.log(`Request ${c.red("failed")} with status ${c.cyn(status)}\n`);
-
-  // Log request to clf log file
-  if (log_requests) {
-    fs.appendFile(
-      "./log_req.txt",
-      buildCLF("-", "-", time_req, method, req, status, "size"),
-      () => {} // No Callback Needed
-    );
-  }
-
-  // Log request to error log file
-  if (log_errors) {
-    fs.appendFile(
-      "./log_err.txt",
-      `${time_req}\n${err_str}\n\n`,
-      () => {} // No Callback Needed
-    );
-  }
-}
-
-// Log a success on the console and log the data to the clf log file if not disabled
-function logSuccess(method, req, time_req, status) {
-  // Log to console
-  console.log(`Request ${c.grn("successful")} with status ${c.cyn(status)}\n`);
-
-  // Log request to clf log file
-  if (log_requests) {
-    fs.appendFile(
-      "./log_req.txt",
-      buildCLF("-", "-", time_req, method, req, status, "size"),
-      () => {} // No Callback Needed
-    );
-  }
-}
 
 // Log application options on startup to the console
 function logOption(option, bool) {
