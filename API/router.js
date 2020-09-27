@@ -10,7 +10,7 @@ const { v4: uuidv4 } = require("uuid");
 const config = require("./config.js");
 
 // Load Routings
-const router_images = require("./router_images");
+const route_images = require("./router_images");
 
 // Retrieve Mongo Client
 const mongo = require("mongodb");
@@ -26,8 +26,11 @@ let log_requests = !p_args.includes("--nolog-req");
 let log_errors = !p_args.includes("--nolog-err");
 let color_disabled = p_args.includes("--nocolor");
 
+// Load colored string helper
+const c = require("./helpers/string_colors")(color_disabled);
+
 // Log that process is starting
-console.log(c_cyn("Attempting to start mongo router"));
+console.log(c.cyn("Attempting to start mongo router"));
 
 // Connect to the db and listen
 MongoClient.connect(
@@ -35,175 +38,177 @@ MongoClient.connect(
   { useNewUrlParser: true, useUnifiedTopology: true },
   (client_err, client) => {
     if (!client_err) {
-      let db = client.db(config.db);
-      let recipes = db.collection("recipes");
+      const route_recipes = require("./router_recipes")(client);
+      // let db = client.db(config.db);
+      // let recipes = db.collection("recipes");
 
-      // Enable CORS -- Or use unsafe mode on chrome (I do now)
-      // app.use((req, res, next) => {
-      //   res.header("Access-Control-Allow-Origin", "http://localhost:8080"); // update to match the domain you will make the request from
-      //   res.header(
-      //     "Access-Control-Allow-Headers",
-      //     "Origin, X-Requested-With, Content-Type, Accept"
-      //   );
-      //   next();
+      // // Enable CORS -- Or use unsafe mode on chrome (I do now)
+      // // app.use((req, res, next) => {
+      // //   res.header("Access-Control-Allow-Origin", "http://localhost:8080"); // update to match the domain you will make the request from
+      // //   res.header(
+      // //     "Access-Control-Allow-Headers",
+      // //     "Origin, X-Requested-With, Content-Type, Accept"
+      // //   );
+      // //   next();
+      // // });
+
+      // // [POST] a new recipe to the mongo db
+      // app.post("/recipes", (request, response) => {
+      //   // Log request and save time of request
+      //   let time_req = logPost(request.originalUrl);
+
+      //   try {
+      //     // Build new entry from request body. Any fields not included will become null
+      //     let new_entry = {
+      //       name: request.body.name,
+      //       time_active: request.body.time_active,
+      //       time_passive: request.body.time_passive,
+      //       ingredients: request.body.ingredients,
+      //       instructions: request.body.instructions,
+      //     };
+
+      //     // Insert one recipe
+      //     recipes.insertOne(new_entry, (err, result) => {
+      //       if (!err) {
+      //         logSuccess("POST", request.originalUrl, time_req, 201);
+      //         response.status(201).send(result.ops[0]);
+      //       } else {
+      //         logFailure("POST", request.originalUrl, time_req, 500, err);
+      //         response.status(500).send({
+      //           status: 500,
+      //           message: "Internal database exception",
+      //         });
+      //       }
+      //     });
+      //   } catch (err) {
+      //     logFailure("POST", request.originalUrl, time_req, 500, err);
+      //     response.status(500).send({
+      //       status: 500,
+      //       message: "Internal database exception",
+      //     });
+      //   }
       // });
 
-      // [POST] a new recipe to the mongo db
-      app.post("/recipes", (request, response) => {
-        // Log request and save time of request
-        let time_req = logPost(request.originalUrl);
+      // // [GET] the data for all recipes, with optional filtering
+      // app.get("/recipes", (request, response) => {
+      //   // Log request and save time of request
+      //   let time_req = logGet(request.originalUrl);
 
-        try {
-          // Build new entry from request body. Any fields not included will become null
-          let new_entry = {
-            name: request.body.name,
-            time_active: request.body.time_active,
-            time_passive: request.body.time_passive,
-            ingredients: request.body.ingredients,
-            instructions: request.body.instructions,
-          };
+      //   try {
+      //     // Ensure that the fields will always be a list
+      //     let fields = paramToList(request.query.fields);
 
-          // Insert one recipe
-          recipes.insertOne(new_entry, (err, result) => {
-            if (!err) {
-              logSuccess("POST", request.originalUrl, time_req, 201);
-              response.status(201).send(result.ops[0]);
-            } else {
-              logFailure("POST", request.originalUrl, time_req, 500, err);
-              response.status(500).send({
-                status: 500,
-                message: "Internal database exception",
-              });
-            }
-          });
-        } catch (err) {
-          logFailure("POST", request.originalUrl, time_req, 500, err);
-          response.status(500).send({
-            status: 500,
-            message: "Internal database exception",
-          });
-        }
-      });
+      //     // Query mongo db
+      //     recipes
+      //       .find()
+      //       .project(fields.reduce((a, b) => ((a[b] = 1), a), {}))
+      //       .toArray((err, result_raw) => {
+      //         // Strip result of any entries only containing _id
+      //         let result = filterEmpty(result_raw, fields.includes("_id"));
 
-      // [GET] the data for all recipes, with optional filtering
-      app.get("/recipes", (request, response) => {
-        // Log request and save time of request
-        let time_req = logGet(request.originalUrl);
+      //         if (!err) {
+      //           if (result.length !== 0) {
+      //             logSuccess("GET", request.originalUrl, time_req, 200);
+      //             response.json(result);
+      //           } else {
+      //             logFailure(
+      //               "GET",
+      //               request.originalUrl,
+      //               time_req,
+      //               404,
+      //               "The requested resource could not be found"
+      //             );
+      //             response.status(404).send({
+      //               status: 404,
+      //               message: "The requested resource could not be found",
+      //             });
+      //           }
+      //         } else {
+      //           logFailure("GET", request.originalUrl, time_req, 500, err);
+      //           response.status(500).send({
+      //             status: 500,
+      //             message: "Internal database exception",
+      //           });
+      //         }
+      //       });
+      //   } catch (err) {
+      //     logFailure("GET", request.originalUrl, time_req, 500, err);
+      //     response.status(500).send({
+      //       status: 500,
+      //       message: "Internal database exception",
+      //     });
+      //   }
+      // });
 
-        try {
-          // Ensure that the fields will always be a list
-          let fields = paramToList(request.query.fields);
+      // // [GET] the data for one recipe using its db id, with optional filtering
+      // app.get("/recipes/:id", (request, response) => {
+      //   // Log request and save time of request
+      //   let time_req = logGet(request.originalUrl);
 
-          // Query mongo db
-          recipes
-            .find()
-            .project(fields.reduce((a, b) => ((a[b] = 1), a), {}))
-            .toArray((err, result_raw) => {
-              // Strip result of any entries only containing _id
-              let result = filterEmpty(result_raw, fields.includes("_id"));
+      //   // First confirm that the id request is OK
+      //   try {
+      //     // Get the id in the appropriate format
+      //     let id = new mongo.ObjectID(request.params.id);
+      //     try {
+      //       // Ensure that the fields will always be a list
+      //       let fields = paramToList(request.query.fields);
 
-              if (!err) {
-                if (result.length !== 0) {
-                  logSuccess("GET", request.originalUrl, time_req, 200);
-                  response.json(result);
-                } else {
-                  logFailure(
-                    "GET",
-                    request.originalUrl,
-                    time_req,
-                    404,
-                    "The requested resource could not be found"
-                  );
-                  response.status(404).send({
-                    status: 404,
-                    message: "The requested resource could not be found",
-                  });
-                }
-              } else {
-                logFailure("GET", request.originalUrl, time_req, 500, err);
-                response.status(500).send({
-                  status: 500,
-                  message: "Internal database exception",
-                });
-              }
-            });
-        } catch (err) {
-          logFailure("GET", request.originalUrl, time_req, 500, err);
-          response.status(500).send({
-            status: 500,
-            message: "Internal database exception",
-          });
-        }
-      });
+      //       recipes.findOne(
+      //         { _id: id },
+      //         { projection: fields.reduce((a, b) => ((a[b] = 1), a), {}) },
+      //         (err, result) => {
+      //           if (!err) {
+      //             // If response is null or only the _id, respond 404
+      //             if (result === null || Object.keys(result).length === 1) {
+      //               logFailure(
+      //                 "GET",
+      //                 request.originalUrl,
+      //                 time_req,
+      //                 404,
+      //                 "The requested resource could not be found"
+      //               );
+      //               response.status(404).send({
+      //                 status: 404,
+      //                 message: "The requested resource could not be found",
+      //               });
+      //             } else {
+      //               logSuccess("GET", request.originalUrl, time_req, 200);
+      //               response.json(result);
+      //             }
+      //           } else {
+      //             logFailure("GET", request.originalUrl, time_req, 500, err);
+      //             response.status(500).send({
+      //               status: 500,
+      //               message: "Internal database exception",
+      //             });
+      //           }
+      //         }
+      //       );
+      //     } catch (err) {
+      //       logFailure("GET", request.originalUrl, time_req, 500, err);
+      //       response.status(500).send({
+      //         status: 500,
+      //         message: "Internal database exception",
+      //       });
+      //     }
 
-      // [GET] the data for one recipe using its db id, with optional filtering
-      app.get("/recipes/:id", (request, response) => {
-        // Log request and save time of request
-        let time_req = logGet(request.originalUrl);
-
-        // First confirm that the id request is OK
-        try {
-          // Get the id in the appropriate format
-          let id = new mongo.ObjectID(request.params.id);
-          try {
-            // Ensure that the fields will always be a list
-            let fields = paramToList(request.query.fields);
-
-            recipes.findOne(
-              { _id: id },
-              { projection: fields.reduce((a, b) => ((a[b] = 1), a), {}) },
-              (err, result) => {
-                if (!err) {
-                  // If response is null or only the _id, respond 404
-                  if (result === null || Object.keys(result).length === 1) {
-                    logFailure(
-                      "GET",
-                      request.originalUrl,
-                      time_req,
-                      404,
-                      "The requested resource could not be found"
-                    );
-                    response.status(404).send({
-                      status: 404,
-                      message: "The requested resource could not be found",
-                    });
-                  } else {
-                    logSuccess("GET", request.originalUrl, time_req, 200);
-                    response.json(result);
-                  }
-                } else {
-                  logFailure("GET", request.originalUrl, time_req, 500, err);
-                  response.status(500).send({
-                    status: 500,
-                    message: "Internal database exception",
-                  });
-                }
-              }
-            );
-          } catch (err) {
-            logFailure("GET", request.originalUrl, time_req, 500, err);
-            response.status(500).send({
-              status: 500,
-              message: "Internal database exception",
-            });
-          }
-
-          // If the wrong number of bytes is provided
-        } catch {
-          logFailure(
-            "GET",
-            request.originalUrl,
-            time_req,
-            400,
-            "The id provided must be a single string of 12 bytes or 24 hex characters"
-          );
-          response.status(400).send({
-            status: 400,
-            message:
-              "The id provided must be a single string of 12 bytes or 24 hex characters",
-          });
-        }
-      });
+      //     // If the wrong number of bytes is provided
+      //   } catch {
+      //     logFailure(
+      //       "GET",
+      //       request.originalUrl,
+      //       time_req,
+      //       400,
+      //       "The id provided must be a single string of 12 bytes or 24 hex characters"
+      //     );
+      //     response.status(400).send({
+      //       status: 400,
+      //       message:
+      //         "The id provided must be a single string of 12 bytes or 24 hex characters",
+      //     });
+      //   }
+      // });
+      app.use("/recipes", route_recipes);
 
       // // Handle Images
       // var storage = multer.diskStorage({
@@ -227,17 +232,10 @@ MongoClient.connect(
       //     message: "Saved Image",
       //   });
       // });
-      app.use("/images", router_images);
-
-      // Host Documentation
-      app.get("/", (request, response) => {
-        response.redirect("/documentation");
-      });
-      app.use("/documentation", express.static("/data/documentation"));
 
       // Indicate successful start in the console
       app.listen(3000, function() {
-        console.log(c_grn("Mongo router successfully started on port 3000"));
+        console.log(c.grn("Mongo router successfully started on port 3000"));
         logOption("Logging of requests to file", log_requests);
         logOption("Logging of errors to file", log_errors);
         logOption("Monochrome white text", color_disabled);
@@ -246,27 +244,22 @@ MongoClient.connect(
         console.log();
       });
     } else {
-      console.log(c_red("Mongo router failed to start:"), client_err);
+      console.log(c.red("Mongo router failed to start:"), client_err);
     }
   }
 );
 
-// Color interrupt functions for in-console strings
-function c_yel(str) {
-  return color_disabled ? str : `\x1b[33m${str}\x1b[0m`;
-}
-function c_grn(str) {
-  return color_disabled ? str : `\x1b[32m${str}\x1b[0m`;
-}
-function c_cyn(str) {
-  return color_disabled ? str : `\x1b[36m${str}\x1b[0m`;
-}
-function c_red(str) {
-  return color_disabled ? str : `\x1b[31m${str}\x1b[0m`;
-}
-function stripColor(str) {
-  return str.replace(/\x1b\[[0-9]+m/g, "");
-}
+// Handle Mongo
+//app.use("/recipes", route_recipes);
+
+// Handle Image Hosting and Upload
+app.use("/images", route_images);
+
+// Host Documentation
+app.get("/", (request, response) => {
+  response.redirect("/documentation");
+});
+app.use("/documentation", express.static("/data/documentation"));
 
 // Convert a number to a two-digit number
 function enforceTwoDigit(num) {
@@ -323,7 +316,7 @@ function logRequest(method, req) {
   let clf_date = getCLFDate();
 
   console.log(clf_date);
-  console.log(`Recieved ${c_yel(method)} request ${c_cyn(req)}`);
+  console.log(`Recieved ${c.yel(method)} request ${c.cyn(req)}`);
 
   return clf_date;
 }
@@ -331,7 +324,7 @@ function logRequest(method, req) {
 // Log an error on the console and log the data to the error log file if not disabled
 function logFailure(method, req, time_req, status, err_str) {
   // Log to console
-  console.log(`Request ${c_red("failed")} with status ${c_cyn(status)}\n`);
+  console.log(`Request ${c.red("failed")} with status ${c.cyn(status)}\n`);
 
   // Log request to clf log file
   if (log_requests) {
@@ -355,7 +348,7 @@ function logFailure(method, req, time_req, status, err_str) {
 // Log a success on the console and log the data to the clf log file if not disabled
 function logSuccess(method, req, time_req, status) {
   // Log to console
-  console.log(`Request ${c_grn("successful")} with status ${c_cyn(status)}\n`);
+  console.log(`Request ${c.grn("successful")} with status ${c.cyn(status)}\n`);
 
   // Log request to clf log file
   if (log_requests) {
@@ -371,7 +364,7 @@ function logSuccess(method, req, time_req, status) {
 function logOption(option, bool) {
   // Log to console
   console.log(
-    `- ${option} is currently ${bool ? c_grn("enabled") : c_red("disabled")}`
+    `- ${option} is currently ${bool ? c.grn("enabled") : c.red("disabled")}`
   );
 }
 
