@@ -15,7 +15,7 @@ module.exports = (client) => {
   //   const MongoClient = mongo.MongoClient;
 
   // Load colored string helper
-  const c = require("./helpers/string_colors")(color_disabled);
+  const c = require("../helpers/string_colors")(color_disabled);
 
   let db = client.db(config.db);
   let recipes = db.collection("recipes");

@@ -7,10 +7,10 @@ const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");
 
 // Load config
-const config = require("./config.js");
+const config = require("./routes/config.js");
 
 // Load Routings
-const route_images = require("./router_images");
+const route_images = require("./routes/images");
 
 // Retrieve Mongo Client
 const mongo = require("mongodb");
@@ -38,203 +38,10 @@ MongoClient.connect(
   { useNewUrlParser: true, useUnifiedTopology: true },
   (client_err, client) => {
     if (!client_err) {
-      const route_recipes = require("./router_recipes")(client);
-      // let db = client.db(config.db);
-      // let recipes = db.collection("recipes");
-
-      // // Enable CORS -- Or use unsafe mode on chrome (I do now)
-      // // app.use((req, res, next) => {
-      // //   res.header("Access-Control-Allow-Origin", "http://localhost:8080"); // update to match the domain you will make the request from
-      // //   res.header(
-      // //     "Access-Control-Allow-Headers",
-      // //     "Origin, X-Requested-With, Content-Type, Accept"
-      // //   );
-      // //   next();
-      // // });
-
-      // // [POST] a new recipe to the mongo db
-      // app.post("/recipes", (request, response) => {
-      //   // Log request and save time of request
-      //   let time_req = logPost(request.originalUrl);
-
-      //   try {
-      //     // Build new entry from request body. Any fields not included will become null
-      //     let new_entry = {
-      //       name: request.body.name,
-      //       time_active: request.body.time_active,
-      //       time_passive: request.body.time_passive,
-      //       ingredients: request.body.ingredients,
-      //       instructions: request.body.instructions,
-      //     };
-
-      //     // Insert one recipe
-      //     recipes.insertOne(new_entry, (err, result) => {
-      //       if (!err) {
-      //         logSuccess("POST", request.originalUrl, time_req, 201);
-      //         response.status(201).send(result.ops[0]);
-      //       } else {
-      //         logFailure("POST", request.originalUrl, time_req, 500, err);
-      //         response.status(500).send({
-      //           status: 500,
-      //           message: "Internal database exception",
-      //         });
-      //       }
-      //     });
-      //   } catch (err) {
-      //     logFailure("POST", request.originalUrl, time_req, 500, err);
-      //     response.status(500).send({
-      //       status: 500,
-      //       message: "Internal database exception",
-      //     });
-      //   }
-      // });
-
-      // // [GET] the data for all recipes, with optional filtering
-      // app.get("/recipes", (request, response) => {
-      //   // Log request and save time of request
-      //   let time_req = logGet(request.originalUrl);
-
-      //   try {
-      //     // Ensure that the fields will always be a list
-      //     let fields = paramToList(request.query.fields);
-
-      //     // Query mongo db
-      //     recipes
-      //       .find()
-      //       .project(fields.reduce((a, b) => ((a[b] = 1), a), {}))
-      //       .toArray((err, result_raw) => {
-      //         // Strip result of any entries only containing _id
-      //         let result = filterEmpty(result_raw, fields.includes("_id"));
-
-      //         if (!err) {
-      //           if (result.length !== 0) {
-      //             logSuccess("GET", request.originalUrl, time_req, 200);
-      //             response.json(result);
-      //           } else {
-      //             logFailure(
-      //               "GET",
-      //               request.originalUrl,
-      //               time_req,
-      //               404,
-      //               "The requested resource could not be found"
-      //             );
-      //             response.status(404).send({
-      //               status: 404,
-      //               message: "The requested resource could not be found",
-      //             });
-      //           }
-      //         } else {
-      //           logFailure("GET", request.originalUrl, time_req, 500, err);
-      //           response.status(500).send({
-      //             status: 500,
-      //             message: "Internal database exception",
-      //           });
-      //         }
-      //       });
-      //   } catch (err) {
-      //     logFailure("GET", request.originalUrl, time_req, 500, err);
-      //     response.status(500).send({
-      //       status: 500,
-      //       message: "Internal database exception",
-      //     });
-      //   }
-      // });
-
-      // // [GET] the data for one recipe using its db id, with optional filtering
-      // app.get("/recipes/:id", (request, response) => {
-      //   // Log request and save time of request
-      //   let time_req = logGet(request.originalUrl);
-
-      //   // First confirm that the id request is OK
-      //   try {
-      //     // Get the id in the appropriate format
-      //     let id = new mongo.ObjectID(request.params.id);
-      //     try {
-      //       // Ensure that the fields will always be a list
-      //       let fields = paramToList(request.query.fields);
-
-      //       recipes.findOne(
-      //         { _id: id },
-      //         { projection: fields.reduce((a, b) => ((a[b] = 1), a), {}) },
-      //         (err, result) => {
-      //           if (!err) {
-      //             // If response is null or only the _id, respond 404
-      //             if (result === null || Object.keys(result).length === 1) {
-      //               logFailure(
-      //                 "GET",
-      //                 request.originalUrl,
-      //                 time_req,
-      //                 404,
-      //                 "The requested resource could not be found"
-      //               );
-      //               response.status(404).send({
-      //                 status: 404,
-      //                 message: "The requested resource could not be found",
-      //               });
-      //             } else {
-      //               logSuccess("GET", request.originalUrl, time_req, 200);
-      //               response.json(result);
-      //             }
-      //           } else {
-      //             logFailure("GET", request.originalUrl, time_req, 500, err);
-      //             response.status(500).send({
-      //               status: 500,
-      //               message: "Internal database exception",
-      //             });
-      //           }
-      //         }
-      //       );
-      //     } catch (err) {
-      //       logFailure("GET", request.originalUrl, time_req, 500, err);
-      //       response.status(500).send({
-      //         status: 500,
-      //         message: "Internal database exception",
-      //       });
-      //     }
-
-      //     // If the wrong number of bytes is provided
-      //   } catch {
-      //     logFailure(
-      //       "GET",
-      //       request.originalUrl,
-      //       time_req,
-      //       400,
-      //       "The id provided must be a single string of 12 bytes or 24 hex characters"
-      //     );
-      //     response.status(400).send({
-      //       status: 400,
-      //       message:
-      //         "The id provided must be a single string of 12 bytes or 24 hex characters",
-      //     });
-      //   }
-      // });
+      const route_recipes = require("./routes/recipes")(client);
       app.use("/recipes", route_recipes);
 
-      // // Handle Images
-      // var storage = multer.diskStorage({
-      //   destination: (req, file, cb) => {
-      //     cb(null, "/data/images");
-      //   },
-      //   filename: (req, file, cb) => {
-      //     cb(
-      //       null,
-      //       uuidv4() + path.extname(file.originalname) //file.fieldname + "-" + Date.now() + path.extname(file.originalname)
-      //     );
-      //   },
-      // });
-      // //will be using this for uplading
-      // const upload = multer({ storage: storage });
-      // app.use("/images", express.static("/data/images")); //, serveIndex('/data/images', {'icons': true}));
-      // app.post("/testUpload", upload.single("profile_pic"), (req, res) => {
-      //   console.log(req.file.path);
-      //   return res.status(201).send({
-      //     status: 201,
-      //     message: "Saved Image",
-      //   });
-      // });
-
-      // Indicate successful start in the console
-      app.listen(3000, function() {
+      app.listen(3000, () => {
         console.log(c.grn("Mongo router successfully started on port 3000"));
         logOption("Logging of requests to file", log_requests);
         logOption("Logging of errors to file", log_errors);
@@ -248,9 +55,6 @@ MongoClient.connect(
     }
   }
 );
-
-// Handle Mongo
-//app.use("/recipes", route_recipes);
 
 // Handle Image Hosting and Upload
 app.use("/images", route_images);
