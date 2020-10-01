@@ -1,3 +1,5 @@
+// Module to handle the building of Common Log Format (CLF) strings
+
 // Build the CLF string
 exports.build = (ip, uid, time_req, method, req, status, size) => {
   return `${ip} - ${uid} [${time_req}] "${method} ${req}" ${status} ${size}\n`;

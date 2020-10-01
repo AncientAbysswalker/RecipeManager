@@ -1,11 +1,7 @@
-module.exports = (client) => {
+module.exports = (client, log_requests, log_errors, color_disabled) => {
   const express = require("express");
   const router = express.Router();
   const fs = require("fs");
-
-  let color_disabled = false;
-  let log_requests = true;
-  let log_errors = true;
 
   // Load logging helper
   const log = require("../helpers/logging")(
@@ -14,30 +10,20 @@ module.exports = (client) => {
     color_disabled
   );
 
-  // Load config
-  const config = require("./config");
-
-  //   // Retrieve Mongo Client
-  //   const mongo = require("mongodb");
-  //   const MongoClient = mongo.MongoClient;
+  // Load query helpers
+  const qry = require("../helpers/query_helpers");
 
   // Load colored string helper
   const c = require("../helpers/string_colors")(color_disabled);
 
-  let db = client.db(config.db);
+  // Load config
+  const recipes_config = require("./recipes_config");
+
+  // Set up MongoDB variables
+  let db = client.db(recipes_config.db);
   let recipes = db.collection("recipes");
 
-  // Enable CORS -- Or use unsafe mode on chrome (I do now)
-  // app.use((req, res, next) => {
-  //   res.header("Access-Control-Allow-Origin", "http://localhost:8080"); // update to match the domain you will make the request from
-  //   res.header(
-  //     "Access-Control-Allow-Headers",
-  //     "Origin, X-Requested-With, Content-Type, Accept"
-  //   );
-  //   next();
-  // });
-
-  // [POST] a new recipe to the mongo db
+  // ExpressJS Router
   router
     .post("/", (request, response) => {
       // Log request and save time of request
@@ -82,7 +68,7 @@ module.exports = (client) => {
 
       try {
         // Ensure that the fields will always be a list
-        let fields = paramToList(request.query.fields);
+        let fields = qry.paramToList(request.query.fields);
 
         // Query mongo db
         recipes
@@ -90,7 +76,7 @@ module.exports = (client) => {
           .project(fields.reduce((a, b) => ((a[b] = 1), a), {}))
           .toArray((err, result_raw) => {
             // Strip result of any entries only containing _id
-            let result = filterEmpty(result_raw, fields.includes("_id"));
+            let result = qry.filterEmpty(result_raw, fields.includes("_id"));
 
             if (!err) {
               if (result.length !== 0) {
@@ -137,7 +123,7 @@ module.exports = (client) => {
         let id = new mongo.ObjectID(request.params.id);
         try {
           // Ensure that the fields will always be a list
-          let fields = paramToList(request.query.fields);
+          let fields = qry.paramToList(request.query.fields);
 
           recipes.findOne(
             { _id: id },
@@ -196,21 +182,4 @@ module.exports = (client) => {
     });
 
   return router;
-
-  // Return a list, string, or null as a list, for purposes of query projection
-  function paramToList(param) {
-    switch (typeof param) {
-      case "string":
-        return [param];
-      case "object":
-        return param;
-      default:
-        return [];
-    }
-  }
-
-  // Strip a list of objects of any object that has only one key
-  function filterEmpty(ls, override = false) {
-    return override ? ls : ls.filter((obj) => Object.keys(obj).length !== 1);
-  }
 };

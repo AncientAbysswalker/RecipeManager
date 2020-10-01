@@ -2,16 +2,7 @@ const express = require("express");
 const app = express();
 
 // Load config
-const config = require("./routes/config.js");
-
-// Load builder for CLF
-
-// Load Routings
-const route_images = require("./routes/images");
-
-// Retrieve Mongo Client
-const mongo = require("mongodb");
-const MongoClient = mongo.MongoClient;
+const config = require("./mongo_config");
 
 // Use body-parser to parse the body af a request
 let bodyParser = require("body-parser");
@@ -29,15 +20,27 @@ const c = require("./helpers/string_colors")(color_disabled);
 // Log that process is starting
 console.log(c.cyn("Attempting to start mongo router"));
 
+// Retrieve Mongo Client
+const mongo = require("mongodb");
+const MongoClient = mongo.MongoClient;
+
 // Connect to the db and listen
 MongoClient.connect(
   config.uri,
   { useNewUrlParser: true, useUnifiedTopology: true },
   (client_err, client) => {
+    // If mongo failed to connect, indicate that the router failed to start
     if (!client_err) {
-      const route_recipes = require("./routes/recipes")(client);
+      // Handle Routing for recipe API
+      const route_recipes = require("./routes/recipes")(
+        client,
+        log_requests,
+        log_errors,
+        color_disabled
+      );
       app.use("/recipes", route_recipes);
 
+      // Indicate if the router has started successfully
       app.listen(3000, () => {
         console.log(c.grn("Mongo router successfully started on port 3000"));
         logOption("Logging of requests to file", log_requests);
@@ -53,10 +56,15 @@ MongoClient.connect(
   }
 );
 
-// Handle Image Hosting and Upload
+// Handle Routing for Image Hosting and Upload
+const route_images = require("./routes/images")(
+  log_requests,
+  log_errors,
+  color_disabled
+);
 app.use("/images", route_images);
 
-// Host Documentation
+// Handle Routing and Hosting of Documentation
 app.get("/", (request, response) => {
   response.redirect("/documentation");
 });
@@ -68,21 +76,4 @@ function logOption(option, bool) {
   console.log(
     `- ${option} is currently ${bool ? c.grn("enabled") : c.red("disabled")}`
   );
-}
-
-// Return a list, string, or null as a list, for purposes of query projection
-function paramToList(param) {
-  switch (typeof param) {
-    case "string":
-      return [param];
-    case "object":
-      return param;
-    default:
-      return [];
-  }
-}
-
-// Strip a list of objects of any object that has only one key
-function filterEmpty(ls, override = false) {
-  return override ? ls : ls.filter((obj) => Object.keys(obj).length !== 1);
 }

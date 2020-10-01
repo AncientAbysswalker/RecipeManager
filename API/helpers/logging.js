@@ -1,16 +1,12 @@
+// Module to handle logging functions
 module.exports = (log_requests, log_errors, color_disabled) => {
-  // Imports
   const fs = require("fs");
 
   // Load helpers
   const c = require("./string_colors")(color_disabled);
   const clf = require("./clf");
-  console.log(555, Object.getOwnPropertyNames(clf));
-  console.log(clf.name);
-  console.log(clf.length);
 
-  // Load helpers responsible for
-
+  // Exported Module Object Definition
   let module = {};
 
   // Log timestamp and that a GET request is recieved to console. Return timestamp of request
@@ -82,5 +78,6 @@ module.exports = (log_requests, log_errors, color_disabled) => {
     );
   };
 
+  // Exported Module Object Return
   return module;
 };
