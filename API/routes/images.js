@@ -104,6 +104,13 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                 message: "Image is too large. Maximum size of 10MB",
               });
               break;
+            default:
+              log.fail("POST", request.originalUrl, time_req, 422, err.message);
+              return response.status(422).send({
+                status: 422,
+                message: err.message,
+              });
+              break;
           }
         }
       });
