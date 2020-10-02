@@ -1,7 +1,7 @@
 module.exports = (client, log_requests, log_errors, color_disabled) => {
   const express = require("express");
   const router = express.Router();
-  const fs = require("fs");
+  const mongo = require("mongodb");
 
   // Load logging helper
   const log = require("../helpers/logging")(
@@ -12,9 +12,6 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
 
   // Load query helpers
   const qry = require("../helpers/query_helpers");
-
-  // Load colored string helper
-  const c = require("../helpers/string_colors")(color_disabled);
 
   // Load config
   const recipes_config = require("./recipes_config");
@@ -37,6 +34,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
           time_passive: request.body.time_passive,
           ingredients: request.body.ingredients,
           instructions: request.body.instructions,
+          images: request.body.images,
         };
 
         // Insert one recipe
