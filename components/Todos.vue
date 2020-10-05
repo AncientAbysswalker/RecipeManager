@@ -18,6 +18,7 @@
 
 <script>
 import RecipeCard from "./RecipeCard.vue";
+const services = require("@/helpers/services");
 import axios from "axios";
 
 export default {
@@ -27,6 +28,7 @@ export default {
   },
   props: ["todos"],
   data: () => ({
+    services: services,
     jobs_old: [
       {
         isBookmarked: false,
@@ -122,7 +124,7 @@ export default {
     console.log(5);
     axios
       .get(
-        "http://www.raviole.cerberus-heuristics.com/recipes?fields=name&fields=time_active&fields=images"
+        `${this.services.url_api}?fields=name&fields=time_active&fields=images`
       )
 
       .then((res) => {
