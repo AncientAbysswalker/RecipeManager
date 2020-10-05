@@ -4,111 +4,38 @@
       <div class="card__title" v-if="this.item.name">
         <a href="#">{{ this.item.name }}</a>
       </div>
-
-      <div class="card__group" v-if="this.item.group">
-        <a href="#">{{ this.item.group }}</a>
-      </div>
-      <div class="card__bookmark">
-        <a
-          href="#"
-          :class="{ bookmarked: this.item.isBookmarked }"
-          @click="toggleBookmark(item, index)"
-        >
-          <svg
-            class="ico"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            focusable="false"
-          >
-            <path
-              fill="currentColor"
-              d="M21 24l-9-9-9 9V2.2C3 1 4 0 5.2 0h13.6C20 0 21 1 21 2.2V24z"
-            />
-          </svg>
-        </a>
-      </div>
     </div>
     <div class="card__body">
-      <ul class="card__featw">
-        <li v-for="value in this.item.features" v-bind:key="value">
-          <span>{{ value }}</span>
-        </li>
-      </ul>
-
       <router-link :to="'/recipe/' + this.item._id">
         <img
           v-bind:src="
-            `http://www.raviole.cerberus-heuristics.com/images/${this.item.images[0]}` ||
-              'https://cdn.sstatic.net/Sites/stackoverflow/img/apple-touch-icon.png'
+            (this.item.images.length > 0
+              ? `${this.services.url_cdn}/${this.item.images[0]}`
+              : require(`@/static/card_default.png`)) ||
+            require(`@/static/card_loading.png`)
           "
           @error="imgPlaceholder"
         />
       </router-link>
-      <!-- +
-                this.item.image[0] -->
-
-      <!-- <img
-        src="https://www.justonecookbook.com/wp-content/uploads/2020/01/Sushi-Rolls-Maki-Sushi-%E2%80%93-Hosomaki-1117-I.jpg"
-        alt="Example image"
-      />-->
     </div>
-    <div class="card__foot">
-      <div class="card__loc" v-if="this.item.loc">
-        <i class="ico">
-          <svg
-            class="ico"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            focusable="false"
-          >
-            <path
-              fill="#ccc"
-              d="M12 0C7.3 0 3.4 3.8 3.4 8.4 3.4 14.7 12 24 12 24s8.6-9.3 8.6-15.6C20.6 3.8 16.7 0 12 0zm0 11.4c-1.7 0-3-1.3-3-3 0-1.6 1.3-3 3-3s3 1.4 3 3c0 1.7-1.3 3-3 3z"
-            />
-          </svg>
-        </i>
-        <a href="#">{{ this.item.loc }}</a>
-      </div>
-      <div class="card__price" v-if="this.item.price">
-        <svg
-          class="ico"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          focusable="false"
-        >
-          <path
-            fill="#ccc"
-            d="M11.6 17.7v1.8H13v-1.8c.3 0 .6-.1.9-.2.5-.1 1-.3 1.4-.6.4-.3.8-.7 1-1.1.3-.5.4-1 .4-1.6 0-.3 0-.6-.1-.9-.1-.3-.2-.6-.4-.8-.2-.3-.4-.5-.7-.7-.3-.2-.6-.4-1-.5-.2-.1-.5-.1-.7-.2-.8-.2-1.7-.4-2.5-.7-.4-.1-.7-.3-1-.5-.3-.2-.4-.5-.4-.9 0-.3.1-.5.2-.7.1-.2.3-.3.5-.5.2-.1.4-.2.7-.2.2 0 .5-.1.7-.1.7 0 1.3.1 1.7.5.4.3.7 1.5.7 1.5h2c0-.6-.1-1.1-.3-1.6-.2-.4-.5-.8-.9-1.1-.4-.3-.9-.5-1.4-.7-.3-.1-.6-.1-.8-.2V4.5h-1.4v1.4c-.3 0-.7.1-1 .2-.5.1-.9.3-1.3.6s-.7.6-.9 1c-.4.4-.5.9-.5 1.5 0 .3 0 .6.1.9.1.3.2.6.4.8.2.3.4.5.8.7.3.2.7.4 1.2.5.8.2 1.4.4 2 .5.5.1 1 .3 1.4.4.2.1.4.2.6.4.2.2.3.5.3 1 0 .2 0 .4-.1.6-.1.2-.2.4-.4.5-.2.2-.5.3-.7.4-.3.1-.7.1-1.1.1-.4 0-.8 0-1.1-.1-.3-.1-.6-.2-.9-.4-.3-.2-.5-.5-.6-.8-.2-.3-.2-.7-.2-1.1h-2c0 .7.1 1.3.4 1.8.3.5.6.9 1 1.3.4.3.9.6 1.5.7.3.2.7.3 1.1.3zM12 24C5.4 24 0 18.6 0 12S5.4 0 12 0s12 5.4 12 12-5.4 12-12 12z"
-          />
-        </svg>
-        <span>{{ this.item.price }}</span>
-      </div>
-    </div>
-    <img class="card__logo" v-if="this.item.logo" :src="this.item.logo" alt />
-    <div
-      class="card__more"
-      v-if="this.item.timestamp"
-      :title="this.item.timestamp"
-    >
-      {{ this.item.timestamp || moment }}
-    </div>
+    <div class="card__foot"></div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
+const services = require("@/helpers/services");
 
 export default {
   name: "RecipeCard",
   props: ["todo", "item", "record", "reqPic"],
-  data: () => ({ photo: null }),
+  data: () => ({ photo: null, services: services }),
   methods: {
     markComplete() {
       this.todo.completed = !this.todo.completed;
     },
     imgPlaceholder(e) {
-      e.target.src =
-        "http://www.raviole.cerberus-heuristics.com/images/profile_pic-1600920645911.jpg";
+      e.target.src = require(`@/static/card_error.png`);
     },
   },
   created() {
@@ -125,7 +52,7 @@ export default {
 img {
   object-fit: cover;
   width: 100%;
-  height: calc(width * 1.75) * 0.1w + "px";
+  height: 500px;
   overflow: hidden;
 }
 
