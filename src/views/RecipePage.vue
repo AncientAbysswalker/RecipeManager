@@ -24,7 +24,12 @@
       </p>
     </div>
     <h3>Instructions</h3>
-    <div
+    <InstructionSection
+      v-for="section in this.fields.instructions"
+      :key="section.title"
+      :section="section"
+    />
+    <!-- <div
       v-for="(section, index) in this.fields.instructions"
       :key="`section${index}`"
     >
@@ -34,18 +39,25 @@
           {{ step }}
         </li>
       </ol>
-    </div>
+    </div> -->
     <p>This is the id: {{ $route.params.id }}</p>
   </div>
 </template>
 
 <script>
+// Modules
 import axios from "axios";
 const services = require("@/helpers/services");
+
+// Components
+import InstructionSection from "../components/InstructionSection";
 
 export default {
   name: "RecipeCard",
   props: ["todo", "item", "record", "reqPic"],
+  components: {
+    InstructionSection,
+  },
   data: () => ({ fields: [], services: services }),
   methods: {
     markComplete() {
@@ -70,9 +82,9 @@ export default {
 </script>
 
 <style scoped>
-ol li {
+/* ol li {
   margin-left: 50px;
   list-style: upper-roman;
   color: red;
-}
+} */
 </style>
