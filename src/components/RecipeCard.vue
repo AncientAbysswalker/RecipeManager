@@ -9,10 +9,10 @@
       <router-link :to="'/recipe/' + this.item._id">
         <img
           v-bind:src="
-            (this.item.images.length > 0
+            (this.item.images.length > 0 //this.fields.images !== undefined &&
               ? `${this.services.url_cdn}/${this.item.images[0]}`
               : require(`@/static/card_default.png`)) ||
-            require(`@/static/card_loading.png`)
+              require(`@/static/card_loading.png`)
           "
           @error="imgPlaceholder"
         />

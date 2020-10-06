@@ -1,15 +1,57 @@
 <template>
   <div class="rerp">
     <h1>{{ this.fields.name }}</h1>
-    <img
+    <carousel class="caru" :per-page="1" :min-swipe-distance="1">
+      <slide
+        v-if="
+          this.fields.images !== undefined && this.fields.images.length === 0
+        "
+      >
+        <img
+          :src="
+            `${services.url_cdn}/${this.fields.images[0]}` ||
+              require(`@/static/card_loading.png`)
+          "
+          @error="imgPlaceholder"
+        />
+      </slide>
+      <!-- <slide>
+        <img
+          :src="
+            `${this.services.url_cdn}/${this.fields.images[0]}` ||
+              require(`@/static/card_loading.png`)
+          "
+          @error="imgPlaceholder"
+        />
+      </slide>
+      <slide>
+        <img
+          :src="
+            `${this.services.url_cdn}/${this.fields.images[1]}` ||
+              require(`@/static/card_loading.png`)
+          "
+          @error="imgPlaceholder"
+        />
+      </slide> -->
+      <slide v-else v-for="(image, index) in this.fields.images" :key="index">
+        <img
+          :src="
+            `${services.url_cdn}/${image}` ||
+              require(`@/static/card_loading.png`)
+          "
+          @error="imgPlaceholder"
+        />
+      </slide>
+    </carousel>
+    <!-- <img
       v-bind:src="
         (this.fields.images !== undefined && this.fields.images.length > 0
           ? `${this.services.url_cdn}/${this.fields.images[0]}`
           : require(`@/static/card_default.png`)) ||
-        require(`@/static/card_loading.png`)
+          require(`@/static/card_loading.png`)
       "
       @error="imgPlaceholder"
-    />
+    /> -->
     <h3>TIME AND YIELDS?</h3>
     <p>{{ this.fields.time_passive }} minutes</p>
     <p>{{ this.fields.time_active }} minutes</p>
@@ -51,12 +93,15 @@ const services = require("@/helpers/services");
 
 // Components
 import InstructionSection from "../components/InstructionSection";
+import { Carousel, Slide } from "vue-carousel";
 
 export default {
   name: "RecipeCard",
   props: ["todo", "item", "record", "reqPic"],
   components: {
     InstructionSection,
+    Carousel,
+    Slide,
   },
   data: () => ({ fields: [], services: services }),
   methods: {
@@ -82,6 +127,12 @@ export default {
 </script>
 
 <style scoped>
+.caru {
+  width: 500px;
+}
+img {
+  width: 500px;
+}
 /* ol li {
   margin-left: 50px;
   list-style: upper-roman;
