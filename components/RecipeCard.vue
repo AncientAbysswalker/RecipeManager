@@ -1,13 +1,24 @@
 <template>
-  <div class="card">
+  <article class="card">
     <div class="card__head">
       <div class="card__title" v-if="this.item.name">
         <a href="#">{{ this.item.name }}</a>
       </div>
     </div>
     <div class="card__body">
-      <router-link :to="'/recipe/' + this.item._id">
-        <img
+      <v-img
+        :aspect-ratio="16 / 9"
+        :width="'100%'"
+        :src="
+          (this.item.images.length > 0 //this.fields.images !== undefined &&
+            ? `${this.services.url_cdn}/${this.item.images[0]}`
+            : require(`@/static/card_default.png`)) ||
+            require(`@/static/card_loading.png`)
+        "
+        @error="imgPlaceholder"
+      />
+
+      <!-- <img
           v-bind:src="
             (this.item.images.length > 0 //this.fields.images !== undefined &&
               ? `${this.services.url_cdn}/${this.item.images[0]}`
@@ -15,20 +26,25 @@
               require(`@/static/card_loading.png`)
           "
           @error="imgPlaceholder"
-        />
-      </router-link>
+        /> -->
+      <router-link :to="'/recipe/' + this.item._id"> </router-link>
     </div>
     <div class="card__foot"></div>
-  </div>
+  </article>
 </template>
 
 <script>
 import axios from "axios";
+import Vue from "vue";
+import { directive } from "v-aspect-ratio";
 const services = require("@/helpers/services");
 
 export default {
   name: "RecipeCard",
   props: ["todo", "item", "record", "reqPic"],
+  directives: {
+    "aspect-ratio": directive,
+  },
   data: () => ({ photo: null, services: services }),
   methods: {
     markComplete() {
@@ -49,12 +65,13 @@ export default {
 </script>
 
 <style scoped>
-img {
+/* img {
   object-fit: cover;
   width: 100%;
   height: 200px;
   overflow: hidden;
-}
+} */
+
 .card {
   display: flex;
   flex-wrap: wrap;
@@ -64,6 +81,7 @@ img {
   line-height: 20px;
   padding: var(--space) calc(var(--space) * 4 / 3);
   transition: all 0.3s;
+  margin: auto;
 }
 @supports (display: grid) {
   .card {
