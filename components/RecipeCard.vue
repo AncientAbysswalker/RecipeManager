@@ -1,173 +1,96 @@
 <template>
   <article class="card">
-    <div class="card__head">
-      <div class="card__title" v-if="this.item.name">
+    <router-link :to="'/recipe/' + this.item._id">
+      <div class="card-header" v-if="this.item.name">
         <a href="#">{{ this.item.name }}</a>
       </div>
-    </div>
-    <div class="card__body">
-      <v-img
-        :aspect-ratio="16 / 9"
-        :width="'100%'"
-        :src="
-          (this.item.images.length > 0 //this.fields.images !== undefined &&
-            ? `${this.services.url_cdn}/${this.item.images[0]}`
-            : require(`@/static/card_default.png`)) ||
-            require(`@/static/card_loading.png`)
-        "
-        @error="imgPlaceholder"
-      />
-
-      <!-- <img
-          v-bind:src="
-            (this.item.images.length > 0 //this.fields.images !== undefined &&
-              ? `${this.services.url_cdn}/${this.item.images[0]}`
-              : require(`@/static/card_default.png`)) ||
-              require(`@/static/card_loading.png`)
+      <div class="card-body">
+        <v-img
+          :aspect-ratio="16 / 9"
+          :lazy-src="require(`@/static/loading.gif`)"
+          :width="'100%'"
+          :src="
+            this.broken_image
+              ? require(`@/static/card_error.png`)
+              : this.item.images.length > 0
+              ? `${services.url_cdn}/${this.item.images[0]}`
+              : require(`@/static/card_default.png`)
           "
-          @error="imgPlaceholder"
-        /> -->
-      <router-link :to="'/recipe/' + this.item._id"> </router-link>
-    </div>
-    <div class="card__foot"></div>
+          @error="setBrokenImage"
+        />
+      </div>
+      <div class="card-footer"></div>
+    </router-link>
   </article>
 </template>
 
 <script>
 import axios from "axios";
-import Vue from "vue";
-import { directive } from "v-aspect-ratio";
 const services = require("@/helpers/services");
 
 export default {
   name: "RecipeCard",
-  props: ["todo", "item", "record", "reqPic"],
-  directives: {
-    "aspect-ratio": directive,
-  },
-  data: () => ({ photo: null, services: services }),
+  props: ["todo", "item", "record"],
+  data: () => ({ services: services, broken_image: false }),
   methods: {
-    markComplete() {
-      this.todo.completed = !this.todo.completed;
+    setBrokenImage() {
+      this.broken_image = true;
     },
-    imgPlaceholder(e) {
-      e.target.src = require(`@/static/card_error.png`);
-    },
-  },
-  created() {
-    this.photo = this.reqPic;
-    //   axios
-    //     .get(this.reqPic)
-    //     .then((res) => (this.photo = res.data))
-    //     .catch((err) => console.log(err));
   },
 };
 </script>
 
 <style scoped>
-/* img {
-  object-fit: cover;
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-} */
-
 .card {
   display: flex;
   flex-wrap: wrap;
   background-color: #fff;
-  border: 2px red solid;
-  font-size: 12px;
-  line-height: 20px;
-  padding: var(--space) calc(var(--space) * 4 / 3);
-  transition: all 0.3s;
-  margin: auto;
+  border: 2px #e0e0e0 solid;
 }
 @supports (display: grid) {
   .card {
     display: grid;
   }
 }
-/* .card:hover,
-.card:hover * {
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3E@keyframes marching-ants {to {stroke-dashoffset: -15px;}}%3C\/style%3E%3Crect width='100%' height='100%' style='stroke:rgba(0,0,0,.3); stroke-width: 1px; fill: none;stroke-dasharray: 10px 5px; animation: marching-ants 1s infinite'/%3E%3C/svg%3E");
-} */
+.card a:hover {
+  text-decoration: none;
+}
 .card a:not(:hover) {
   text-decoration: none;
 }
 .card:hover {
   background-color: #eef8fc;
 }
-@supports (display: grid) {
-  .card {
-    grid-gap: var(--space-s);
-    grid-template-areas: "ghead ghead" "gbody gbody" "gfoot glogo" "gmore gmore";
-    grid-template-columns: 1fr 120px;
-  }
-}
-.card__head,
-.card__body,
-.card__foot {
+.card-header,
+.card-body,
+.card-footer {
   display: flex;
   flex-grow: 1;
   flex-basis: 100%;
 }
 @supports (display: grid) {
-  .card__head,
-  .card__body,
-  .card__foot {
+  .card-header,
+  .card-body,
+  .card-footer {
     display: grid;
   }
 }
-@supports (display: grid) {
-  .card__head,
-  .card__body,
-  .card__foot {
-    grid-gap: var(--space-xs);
-  }
-}
-.card__head {
+.card-header {
   display: flex;
   position: relative;
-  font-size: 14px;
+  font-size: 1.6vw;
   font-weight: bold;
-  line-height: 20px;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-between;
+  border-bottom: 2px #e0e0e0 solid;
 }
 @supports (display: grid) {
-  .card__head {
+  .card-header {
     display: grid;
   }
 }
-@supports (display: grid) {
-  .card__head {
-    grid-template-columns: 1fr 40px;
-    grid-template-areas: "gtitle gbookmark" "ggroup gbookmark";
-    grid-area: ghead;
-  }
-}
-.card__body {
-  grid-area: gbody;
-  flex-wrap: wrap;
-}
-.card__foot {
-  grid-area: gfoot;
-  line-height: 16px;
-  align-items: end;
-}
-.card__more {
-  grid-area: gmore;
-}
-.card__title {
-  flex-grow: 9999;
-  flex-basis: 100%;
-  grid-area: gtitle;
-}
-.card__title a {
-  color: #298eb9;
-}
+
 @media (min-width: 768px) {
   .card__title a {
     font-size: 16px;
