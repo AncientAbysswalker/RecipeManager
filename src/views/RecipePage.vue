@@ -1,15 +1,11 @@
 <template>
   <div class="rerp">
     <h1>{{ this.fields.name }}</h1>
-    <carousel class="caru" :per-page="1" :min-swipe-distance="1">
-      <slide
-        v-if="
-          this.fields.images !== undefined && this.fields.images.length === 0
-        "
-      >
+    <carousel class="caru" :per-page="1">
+      <slide v-if="this.fields.images.length === 0">
         <img
           :src="
-            `${services.url_cdn}/${this.fields.images[0]}` ||
+            require(`@/static/card_default.png`) ||
               require(`@/static/card_loading.png`)
           "
           @error="imgPlaceholder"
