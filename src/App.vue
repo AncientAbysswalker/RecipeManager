@@ -4,12 +4,12 @@
       <Header />
       <div class="d-flex align-center">
         <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
+          alt="Raviole Logo"
+          class="shrink mr-2 ml-2"
           contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
+          src="@/assets/raviole.png"
           transition="scale-transition"
-          width="40"
+          width="50"
         />
 
         <div class="text-h4">RaviOlé</div>
@@ -20,7 +20,7 @@
           min-width="100"
           src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
           width="100"
-        />-->
+        /> -->
       </div>
 
       <v-spacer></v-spacer>
