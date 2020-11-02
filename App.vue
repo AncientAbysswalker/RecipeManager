@@ -2,17 +2,19 @@
   <v-app>
     <v-app-bar app color="primary" dark>
       <Header />
-      <div class="d-flex align-center">
-        <v-img
-          alt="Raviole Logo"
-          class="shrink mr-2 ml-2"
-          contain
-          src="@/assets/raviole.png"
-          transition="scale-transition"
-          width="50"
-        />
+      
+      <router-link to="/">
+        <div class="d-flex align-center">
+          <v-img
+            alt="Raviole Logo"
+            class="shrink mr-2 ml-2"
+            contain
+            src="@/assets/raviole.png"
+            transition="scale-transition"
+            width="50"
+          />
 
-        <div class="text-h4">RaviOlé</div>
+          <div class="wt-tx text-h4">RaviOlé</div>
         <!-- <v-img
           alt="Vuetify Name"
           class="shrink mt-1 hidden-sm-and-down"
@@ -21,8 +23,14 @@
           src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
           width="100"
         /> -->
-      </div>
+        </div>
+      </router-link>
 
+      <v-spacer></v-spacer>
+      <div id="nav">
+        <router-link to="/">Home</router-link> |
+        <router-link to="/about">About</router-link>
+      </div>
       <v-spacer></v-spacer>
 
       <v-btn
@@ -53,3 +61,23 @@ export default {
   }),
 };
 </script>
+
+<style scoped>
+#nav * {
+  color: #fff !important;
+}
+
+.wt-tx {
+  color: #fff
+}
+
+/* Add Fancy Font */
+@font-face {
+  font-family: "ReginaScript";
+  src: local("ReginaScript"), url(./fonts/ReginaScript.ttf) format("truetype");
+}
+@font-face {
+  font-family: "QuickKiss";
+  src: local("QuickKiss"), url(./fonts/QuickKiss.ttf) format("truetype");
+}
+</style>
