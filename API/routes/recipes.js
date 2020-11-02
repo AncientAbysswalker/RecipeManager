@@ -31,7 +31,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
         let new_entry = {
           name: request.body.name,
           time_active: request.body.time_active,
-          time_passive: request.body.time_passive,
+          time_total: request.body.time_total,
           ingredients: request.body.ingredients,
           instructions: request.body.instructions,
           images: request.body.images,
