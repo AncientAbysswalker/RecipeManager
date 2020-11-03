@@ -5,40 +5,22 @@
       <p>fuck you</p>
       <p>fuck you</p>
     </div>-->
-    <p class="instruction__card__header">{{ this.section.title }}</p>
-    <div class="paper" v-if="section.hasOwnProperty('steps')">
-      <p class="subsection__numbered__item" v-for="(step, index) in this.section.steps" :key="step">
-        <span>{{ index + 1 }}</span>
-        {{ step }}
-      </p>
-      <!-- <table class="instruction__card__table">
-        <tbody>
-          <tr v-for="(step, index) in this.section.steps" :key="step">
-            <td>{{ index+1 }}</td>
-            <td>{{ step }}</td>
-          </tr>
-        </tbody>
-      </table>-->
-    </div>
-    <div class="paper" v-else>
-      <InstructionSubSection
-        v-for="subsection in this.section.subsections"
-        :key="subsection.title"
-        :section="subsection"
-      />
+    <p class="instruction__card__header">{{ this.title }}</p>
+    <div class="paper">
+      <InstructionContainer :contents="this.contents" notitle />
     </div>
   </div>
 </template>
 
 <script>
 // Components
-import InstructionSubSection from "../components/InstructionSubSection";
+import InstructionContainer from "../components/InstructionContainer";
 
 export default {
-  name: "InstructionSection",
-  props: ["section"],
+  name: "InstructionCard",
+  props: ["title", "contents"],
   components: {
-    InstructionSubSection
+    InstructionContainer
   }
 };
 </script>
@@ -60,7 +42,8 @@ export default {
   font-size: 32px;
   font-weight: bold;
   padding: 0.25em 0.5em 0.25em 0.5em;
-  line-height: 1em;
+  line-height: 32px;
+  height: 1.5em;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;

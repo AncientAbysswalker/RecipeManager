@@ -115,10 +115,11 @@
       <!-- Instructions -->
       <div>
         <h2>Instructions</h2>
-        <InstructionSection
-          v-for="section in this.fields.instructions"
-          :key="section.title"
-          :section="section"
+        <InstructionCard
+          v-for="container in this.fields.instructions"
+          :key="container.title"
+          :title="container.title"
+          :contents="container.contents"
         />
       </div>
 
@@ -147,14 +148,14 @@ import axios from "axios";
 const services = require("@/helpers/services");
 
 // Components
-import InstructionSection from "../components/InstructionSection";
+import InstructionCard from "../components/InstructionCard";
 //import { Carousel, Slide } from "vue-carousel";
 
 export default {
   name: "RecipeCard",
   props: ["todo", "item", "record", "reqPic"],
   components: {
-    InstructionSection
+    InstructionCard
   },
   data: () => ({ fields: [], services: services }),
   methods: {
