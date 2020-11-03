@@ -1,22 +1,20 @@
 <template>
-  <div class="subsection__card__container">
-    <!--<div class="paper">
-      <p>fuck you</p>
-      <p>fuck you</p>
-      <p>fuck you</p>
-    </div>-->
-    <p class="subsection__header">{{ this.section.title }}</p>
-    <p class="subsection__numbered__item" v-for="(step, index) in this.section.steps" :key="step">
-      <span>{{ index + 1 }}</span>
-      {{ step }}
-    </p>
+  <div>
+    <p v-if="!this.notitle">{{this.title}}</p> 
+    <template v-for="(element, index) in this.contents">
+      <InstructionContainer v-if="element.type === 0" :key="index" :title="element.title" :contents="element.contents"></InstructionContainer>
+      <p v-else-if="element.type === 1" :key="index">{{element.text}}</p>
+      <p v-else-if="element.type === 2" :key="index">I am a Ordered List</p>
+      <p v-else-if="element.type === 3" :key="index">I am an Unordered List</p>
+      <p v-else :key="index">Something has gone horribly wrong!</p>
+    </template>
   </div>
 </template>
 
 <script>
 export default {
-  name: "InstructionSubSection",
-  props: ["section"]
+  name: "InstructionContainer",
+  props: {"title":String, "contents":Array, "notitle": Boolean}
 };
 </script>
 
