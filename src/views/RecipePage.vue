@@ -113,7 +113,7 @@
       </div>
 
       <!-- Instructions -->
-      <div>
+      <div id="section-instructions">
         <h2>Instructions</h2>
         <InstructionCard
           v-for="container in this.fields.instructions"
@@ -331,11 +331,10 @@ img {
   /* position: relative;
   top: 0.2em; */
 }
-.instruction__card__container {
-  border: 1px solid #cfcfcf;
-  box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.1);
-}
-.instruction__card__container:not(:last-child) {
+
+/* Space between Instruction Cards */
+#section-instructions > div:not(:last-child) {
   margin-bottom: 20px;
 }
+
 </style>
