@@ -1,6 +1,6 @@
 <template>
     <div class="instruction__card__container">
-        <p class="instruction__card__header">{{ this.title }}</p>
+        <p class="instruction__card__header" :class="isEditMode ? 'instruction__card__header--edit' : ''" :contenteditable="isEditMode ? 'true' : 'false'" @blur="onEdit">{{this.title}}</p>
         <div class="ruled__paper">
             <InstructionContainer
                 :contents="this.contents"
@@ -20,6 +20,15 @@ export default {
     props: ['title', 'contents', 'isEditMode'],
     components: {
         InstructionContainer
+    },
+    methods: {
+        log(msg){
+            console.log(msg); 
+        },
+        onEdit(evt){
+            let updatedContent = evt.target.innerText
+            this.$emit("update-title", updatedContent);
+        }
     }
 };
 </script>
@@ -33,16 +42,20 @@ export default {
 /* Enforce 0 margin styling, as there is an auto-margin -_- */
 /deep/ * {
     border: 0px blue solid;
-    margin-bottom: 0 !important;
+    /* margin-bottom: 0 !important; */
     line-height: 1.5em;
 }
 
-/* Top-level card and paper styling */
+/* Top-level card and paper styling*/
 .instruction__card__container {
     border: 1px solid #cfcfcf;
     box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5em;
+    bottom: 20px;
 }
 .ruled__paper {
+    display: inline-block;
+    width: 100%;
     border-top: solid 1px #ffb3b3;
     /* Set a font size */
     font-size: 16px;
@@ -92,5 +105,14 @@ export default {
     white-space: nowrap;
     /* position: relative;
   top: 0.2em; */
+}
+
+.instruction__card__header--edit:empty::before { /* Edit mode empty item text */
+    content: 'Instruction Card Title';
+    color: #cccccc;
+}
+.instruction__card__header--edit:focus { /* When activaly editing */
+    outline: none;
+    background-color: #cccccc55;
 }
 </style>

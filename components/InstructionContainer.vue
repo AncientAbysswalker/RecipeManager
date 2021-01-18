@@ -11,11 +11,11 @@
         <draggable
             class="dragArea"
             dragClass="sortable-drag"
-            tag="ul"
+            ghostClass="ghost"
             handle=".can-drag"
             :animation="150"
             :list="contents"
-            :group="{ name: 'g1' }"
+            :group="{ name: 'instruction-element' }"
         >
             <template v-for="(element, index) in this.contents">
                 <InstructionContainer
@@ -24,15 +24,16 @@
                     :title="element.title"
                     :contents="element.contents"
                     :class="isEditMode && 'can-drag'"
+                    :isEditMode="isEditMode"
                 ></InstructionContainer>
                 <p
-                    class="element__notes"
+                    class="element__notes element__edit--notes"
                     :class="isEditMode && 'can-drag'"
                     v-else-if="element.type === 1"
                     :key="index + '-' + element.type"
-                >
-                    {{ element.text }}
-                </p>
+                    :contenteditable="isEditMode ? 'true': 'false'"
+                    @blur="onNotesEdit($event, element)"
+                >{{element.text}}</p>
                 <div
                     class="element__ordered__list"
                     :class="isEditMode && 'can-drag'"
@@ -44,8 +45,14 @@
                         v-for="(step, index) in element.steps"
                         :key="'ol' + index"
                     >
-                        <span>{{ index + 1 }}</span
-                        >{{ step }}
+                        <span>{{ index + 1 }}</span>
+                        <span 
+                            class="element__edit--lists"
+                            :contenteditable="isEditMode ? 'true': 'false'"
+                            @blur="onOrderedListEdit($event, index, element)"
+                        >
+                            {{step}}
+                        </span>
                     </p>
                 </div>
                 <div
@@ -93,6 +100,26 @@ export default {
     },
     components: {
         draggable
+    },
+    methods: {
+        log(msg){
+            console.log(msg); 
+        },
+        onNotesEdit(evt, notesState){
+            let updatedContent = evt.target.innerText;
+            console.log(typeof updatedContent);
+            //notesState.text = updatedContent;
+            console.log(notesState.text)
+        },
+        onOrderedListEdit(evt, index, listState){
+            let updatedContent = evt.target.innerText;
+            listState.steps[index] = updatedContent;
+        },
+        updateTitle(newTitle, list) {
+            console.log('ddd');
+            console.log(list);
+            //instructionCard.title = newTitle;
+        }
     }
 };
 </script>
@@ -124,55 +151,100 @@ export default {
 
 .sortable-drag {
     color: red;
-    border: 1px black solid;
+    /*border: 1px black solid;*/
 }
 
-/* Padding to add space between elements in the container */
-.instruction__container > *:not(:last-child) {
-    padding-bottom: 1.5em;
-}
-.top__level {
-    /* The top-level container needs to add some space at the end to look more natural */
-    padding-bottom: 1.5em;
-}
+/* General Styling for Elements */
+.element__general { /* Base */
+    margin: 0;
+    line-height: 1.5em;
+    margin-bottom: 1.5em;
 
-.element__general {
-    padding-bottom: 1.5em;
+    /* Space to vertical line on left and from right of 'card' */
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+.element__general:last-child { /* Fixing one extra 1px line on card showing */
+    margin-bottom: calc(1.5em - 1.5px);
+}
+.element__edit:focus { /* When activaly editing */
+    outline: none;
+    background-color: #cccccc55;
+}
+.element__edit:empty::before { /* Edit mode empty item text */
+    content: 'Instruction Text';
+    color: #cccccc;
 }
 
 /* Styling for Notes */
 .element__notes {
     @extend .element__general;
-    margin: 0;
-    line-height: 1.5em;
-
-    /* Space to vertical line on left and from right of 'card' */
-    padding-left: 0.5em;
-    padding-right: 0.5em;
-
-    /* Space afterwards for *FDIHDR93 */
-    /* padding-bottom: 1.5em;*/
+}
+.element__edit--notes {
+    @extend .element__edit;
+}
+.element__edit--notes:empty::before {
+    content: 'Notes Section Text';
 }
 
-/* Styling for  */
+/* Styling for Lists */
+.element__unordered__list,
+.element__ordered__list {
+    @extend .element__general;
+}
+
 .element__unordered__list__item,
 .element__ordered__list__item {
     margin: 0;
-    line-height: 1.5em;
 
     /* Positioning */
-    padding-left: 0.5em;
+    //padding-left: 0.5em;
     position: relative;
     /* top: 0.4em; */
 }
 /* .element__ordered__list__item:last-child {
   padding-bottom: 1.5em;
 } */
-.element__unordered__list__item span,
-.element__ordered__list__item span {
+.element__unordered__list__item span:first-child,
+.element__ordered__list__item span:first-child {
     padding: 0;
     margin: 0; /* Because .paper * line */
     position: absolute;
-    left: -1em;
+    left: -1.5em;
+}
+.element__edit--lists {
+    @extend .element__edit;
+    line-height: 1.5em;
+}
+.element__edit--lists:empty::before {
+    content: 'List Section Text';
+}
+
+.new__drag, .new__element__drag--notes * {
+    height: 5px;
+}
+.new__element__drag--notes img {
+    height: 5px;
+    width: auto;
+}
+.new__element__drag--drug img {
+    height: 5px;
+    width: auto;
+}
+
+.instruction__container img {
+    height: 5px;
+}
+.sortable-drag img {
+    height: 5px;
+}
+.ghost img {
+    height: 5px;
+}
+.new__element__drag--notes {
+    height: 5px;
+}
+.new__element__drag--drug {
+    height: 5px;
 }
 </style>
