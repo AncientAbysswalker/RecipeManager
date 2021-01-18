@@ -4,14 +4,34 @@
             <div id="section-header">
                 <h1 class="text-fancy">{{ this.fields.name }}</h1>
 
-                <!-- Temp Checkbox -->
-                <input
-                    class="edit-mode"
-                    type="checkbox"
-                    id="isEditMode"
-                    name="isEditMode"
-                    v-model="is_edit_mode"
-                />
+                <!-- Top Edit Container -->
+                <div class="edit-mode">
+                    <input
+                        type="checkbox"
+                        id="isEditMode"
+                        name="isEditMode"
+                        v-model="is_edit_mode"
+                    />
+                    <v-btn 
+                        x-small
+                        color="primary"
+                        @click="printListState"
+                    >Log List State</v-btn>
+                </div>
+
+                <!-- Side Edit Container -->
+                <div class="edit__mode__tools">
+                    <draggable
+                        class="dragArea"
+                        dragClass="new__element__drag--notes"
+                        ghostClass="ghost"
+                        :animation="150"
+                        :list="[{text: '', type: 1}]"
+                        :group="{ name: 'instruction-element', pull: 'clone', put: false }"
+                    >
+                        <img class="new__drag--paragraph" src="@/assets/paragraph.png">
+                    </draggable>
+                </div>
 
                 <v-carousel class="caru" :show-arrows="false">
                     <v-carousel-item
@@ -134,17 +154,17 @@
             <div id="section-instructions">
                 <h2>Instructions</h2>
                 <draggable
-                    tag="ul"
                     :animation="150"
-                    :list="contents"
+                    :list="this.fields.instructions"
                     :group="{ name: 'instruction-card' }"
                 >
                     <InstructionCard
                         v-for="container in this.fields.instructions"
                         :key="container.title"
-                        :title="container.title"
+                        :title.sync="container.title"
                         :contents="container.contents"
                         :isEditMode="is_edit_mode"
+                        @update-title="updateTitle($event, container)"
                     />
                 </draggable>
             </div>
@@ -188,7 +208,7 @@ export default {
     data: () => ({
         fields: [],
         services: services,
-        is_edit_mode: false
+        is_edit_mode: true
     }),
     methods: {
         markComplete() {
@@ -196,6 +216,12 @@ export default {
         },
         imgPlaceholder(e) {
             e.target.src = require(`@/static/card_error.png`);
+        },
+        updateTitle(newTitle, instructionCard) {
+            instructionCard.title = newTitle;
+        },
+        printListState() {
+            console.log(this.fields.instructions);
         }
     },
     mounted() {
@@ -379,5 +405,27 @@ img {
     position: absolute;
     right: 0px;
     top: 0px;
+}
+.edit-mode > * {
+    margin-right:25px;
+}
+
+.edit__mode__tools {
+    position: fixed;
+    right: 0px;
+    top: 150px;
+}
+
+.edit__mode__tools img {
+    height: 50px;
+    width: auto;
+}
+
+.new__drag--paragraph {
+    height: 1.5em;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 1.5em;
 }
 </style>
