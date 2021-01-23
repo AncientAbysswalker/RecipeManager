@@ -21,16 +21,37 @@
 
                 <!-- Side Edit Container -->
                 <div class="edit__mode__tools">
-                    <draggable
-                        class="dragArea"
-                        dragClass="new__element__drag--notes"
-                        ghostClass="ghost"
-                        :animation="150"
-                        :list="[{text: '', type: 1}]"
-                        :group="{ name: 'instruction-element', pull: 'clone', put: false }"
-                    >
-                        <img class="new__drag--paragraph" src="@/assets/paragraph.png">
-                    </draggable>
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <draggable
+                                class="dragArea"
+                                dragClass="new__element__drag--notes"
+                                ghostClass="ghost"
+                                :animation="150"
+                                :list="[{text: '', type: 1}]"
+                                :group="{ name: 'instruction-element', pull: 'clone', put: false }"
+                            >
+                                <img class="new__drag--paragraph" src="@/assets/paragraph.png" v-bind="attrs" v-on="on">
+                            </draggable>
+                        </template>
+                        <span>Paragraph</span>
+                    </v-tooltip>
+                    <hr>
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <draggable
+                                class="dragArea"
+                                dragClass="new__element__drag--notes"
+                                ghostClass="ghost"
+                                :animation="150"
+                                :list="[{steps: [''], type: 2}]"
+                                :group="{ name: 'instruction-element', pull: 'clone', put: false }"
+                            >
+                                <img class="new__drag--paragraph" src="@/assets/ordered_list.png" v-bind="attrs" v-on="on">
+                            </draggable>
+                        </template>
+                        <span>Numbered List</span>
+                    </v-tooltip>
                 </div>
 
                 <v-carousel class="caru" :show-arrows="false">
@@ -414,11 +435,34 @@ img {
     position: fixed;
     right: 0px;
     top: 150px;
+    background: #FFF1B3;
+    border-radius: 10px 0 0 10px;
 }
 
 .edit__mode__tools img {
-    height: 50px;
+    margin: 10px;
+    padding: 0;
+    height: 30px;
     width: auto;
+}
+.edit__mode__tools hr {
+    margin: 0;
+
+    padding: 0px;
+    margin-left: 10px;
+    margin-right: 10px;
+    display: block; 
+    height: 0px;
+    color: #D6BE57;
+    background-color: #D6BE57;
+    border: 1px solid #D6BE57;
+    border-radius: 5px;
+}
+.edit__mode__tools hr:first-child {
+    margin-top: 10px;
+}
+.edit__mode__tools hr:last-child {
+    margin-bottom: 10px;
 }
 
 .new__drag--paragraph {
@@ -427,5 +471,13 @@ img {
     margin: 0;
     padding: 0;
     margin-bottom: 1.5em;
+}
+.ghost {
+    font-size: 16px;
+    margin: 0;
+    padding: 0;
+    height: 24px;
+    line-height: 24px;
+    margin-bottom: 24px;
 }
 </style>
