@@ -1,59 +1,71 @@
 <template>
     <div
         :class="
-            'instruction__container' + (this.top_level ? ' top__level' : '')
+            'instruction__container anchor' + (this.top_level ? ' top__level' : '')
         "
-    >
-        <p class="element__title" v-if="!this.top_level">
-            {{ this.title }}
-        </p>
+    > <!-- v-on:dragover="dragOver" --> 
+        <div v-if="isEditMode && !this.top_level" class="handle__container can-drag"></div>
+        <p 
+            class="element__title"
+            v-if="!this.top_level"
+        >{{ this.title }}</p>
 
         <draggable
             class="dragArea"
             dragClass="sortable-drag"
+            :class="contents.length==0 && 'gry'"
             ghostClass="ghost"
             handle=".can-drag"
             :animation="150"
             :list="contents"
             :group="{ name: 'instruction-element' }"
         >
-            <template v-for="(element, index) in this.contents">
+            <template v-for="(element, index) in contents">
                 <InstructionContainer
                     v-if="element.type === 0"
                     :key="index + '-' + element.type"
                     :title="element.title"
-                    :contents="element.contents"
+                    :contents.sync="element.contents"
                     :class="isEditMode && 'can-drag'"
                     :isEditMode="isEditMode"
                 ></InstructionContainer>
-                <p
-                    class="element__notes element__edit--notes"
-                    :class="isEditMode && 'can-drag'"
-                    v-else-if="element.type === 1"
-                    :key="index + '-' + element.type"
-                    :contenteditable="isEditMode ? 'true': 'false'"
-                    @blur="onNotesEdit($event, element)"
-                >{{element.text}}</p>
-                <div
-                    class="element__ordered__list"
-                    :class="isEditMode && 'can-drag'"
-                    v-else-if="element.type === 2"
-                    :key="index + '-' + element.type"
-                >
-                    <p
-                        class="element__ordered__list__item"
-                        v-for="(step, index) in element.steps"
-                        :key="'ol' + index"
+                <div class="anchor" v-else-if="element.type === 1" :key="index + '-' + element.type">
+                    <div v-if="isEditMode" class="handle__component can-drag"></div>
+                    <p 
+                        class="element__notes element__edit--notes"
+                        :contenteditable="isEditMode ? 'true': 'false'"
+                        @keydown="eatEnter"
+                        @focus="onFocus"
+                        @blur="onNotesEdit($event, element)"
+                    >{{element.text}}</p>
+                </div>
+                <div class="anchor list-container" v-else-if="element.type === 2" :key="index + '-' + element.type">
+                    <div v-if="isEditMode" class="handle__component can-drag"></div>
+                    
+                    <draggable
+                        class="dragArea"
+                        dragClass="sortable-drag"
+                        ghostClass="ghost"
+                        handle=".can-drag"
+                        :animation="150"
+                        :list="element.steps"
+                        :group="{ name: 'instruction-list' }"
                     >
-                        <span>{{ index + 1 }}</span>
-                        <span 
-                            class="element__edit--lists"
-                            :contenteditable="isEditMode ? 'true': 'false'"
-                            @blur="onOrderedListEdit($event, index, element)"
+                        <div
+                            class="element__ordered__list__item anchor"
+                            v-for="(step, index) in element.steps"
+                            :key="'ol' + index"
                         >
-                            {{step}}
-                        </span>
-                    </p>
+                            <span v-if="!isEditMode">{{ index + 1 }}</span>
+                            <div v-else class="center"><div class="ball can-drag"></div></div>
+                            <span 
+                                class="element__edit--lists"
+                                :contenteditable="isEditMode ? 'true': 'false'"
+                                @blur="onOrderedListEdit($event, index, element)"
+                            >{{step}}</span>
+                        </div>
+                    </draggable>
+
                 </div>
                 <div
                     class="element__unordered__list"
@@ -80,6 +92,8 @@
                     {{ element.type }} is invalid!
                 </p>
             </template>
+            <!-- Empty List Placeholder -->  
+            <p id="phantom" class="element__notes text--grey" key="phantom-text">This Container is Empty</p>
         </draggable>
     </div>
 </template>
@@ -105,22 +119,52 @@ export default {
         log(msg){
             console.log(msg); 
         },
-        onNotesEdit(evt, notesState){
-            let updatedContent = evt.target.innerText;
-            console.log(typeof updatedContent);
-            //notesState.text = updatedContent;
-            console.log(notesState.text)
+        eatEnter(e) {
+            if (e.keyCode === 13) {
+                //e.preventDefault()
+            } else if (e.keyCode === 50) {
+                alert('@ was pressed');
+            }      
+            this.log += e.key;
         },
-        onOrderedListEdit(evt, index, listState){
-            let updatedContent = evt.target.innerText;
-            listState.steps[index] = updatedContent;
+        onFocus(evt) {
+            evt.target.className += " redborder";
+        },
+        onNotesEdit(evt, notesState) {
+            let updatedContent = evt.target.textContent.replace('\xa0', ' '); // Remove &nbsp and newlines
+            console.log(updatedContent);
+            //evt.target.textContent = updatedContent; // Ensure updated contents
+            notesState.text = updatedContent;
+        },
+        onOrderedListEdit(evt, index, listState) {
+            let updatedContent = evt.target.textContent.replace('\xa0', ' '); // Remove &nbsp and newlines
+            //evt.target.textContent = updatedContent; // Ensure updated contents
+            listState.steps[index] = updatedContent; // Store updated state
         },
         updateTitle(newTitle, list) {
             console.log('ddd');
             console.log(list);
             //instructionCard.title = newTitle;
+        },
+        dragOver(evt) {
+            console.log(evt.target.id);
+            console.log(evt.target.id === "phantom");
+            if (evt.target.id === "phantom") {
+                evt.target.classList.add('hide');
+            }
+            //console.log(evt.target.id);//let phantom = console.log(evt.target.classList.add('hide'))
+            //instructionCard.title = newTitle;
+        },
+        showPhantom(evt) {
+            console.log(evt);//let phantom = 
+            //instructionCard.title = newTitle;
         }
-    }
+    },
+    watch: {
+        counter: function(){
+            this.$emit('update:counter',this.counter)
+        }
+    },
 };
 </script>
 
@@ -164,9 +208,9 @@ export default {
     padding-left: 0.5em;
     padding-right: 0.5em;
 }
-.element__general:last-child { /* Fixing one extra 1px line on card showing */
+/*.top__level:last-child {  Fixing one extra 1px line on card showing 
     margin-bottom: calc(1.5em - 1.5px);
-}
+}*/
 .element__edit:focus { /* When activaly editing */
     outline: none;
     background-color: #cccccc55;
@@ -174,6 +218,12 @@ export default {
 .element__edit:empty::before { /* Edit mode empty item text */
     content: 'Instruction Text';
     color: #cccccc;
+}
+
+/* Styling for Sub-Title */
+.element__title {
+    @extend .element__general;
+    margin-bottom: 0px;
 }
 
 /* Styling for Notes */
@@ -191,11 +241,13 @@ export default {
 .element__unordered__list,
 .element__ordered__list {
     @extend .element__general;
+    border: 1px solid red;
 }
 
 .element__unordered__list__item,
 .element__ordered__list__item {
     margin: 0;
+    padding: 0;
 
     /* Positioning */
     //padding-left: 0.5em;
@@ -211,6 +263,11 @@ export default {
     margin: 0; /* Because .paper * line */
     position: absolute;
     left: -1.5em;
+}
+.element__unordered__list__item span:last-child,
+.element__ordered__list__item span:last-child {
+    display: inline-block;
+    width:100%;
 }
 .element__edit--lists {
     @extend .element__edit;
@@ -246,5 +303,67 @@ export default {
 }
 .new__element__drag--drug {
     height: 5px;
+}
+.redborder {
+    border: red 1px solid;
+}
+.anchor {
+    position: relative;
+}
+.handle__component {
+    position: absolute;
+    left: -25px;
+    background: #cccccc88;
+    height: 100%;
+    width: 20px;
+    border-radius: 5px;
+}
+.handle__container {
+    position: absolute;
+    left: -50px;
+    background: red;
+    height: 100%;
+    width: 20px;
+    border-radius: 5px;
+}
+.center {
+    position: absolute;
+    left: -25px;
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+.ball {
+    background: #ffffff;
+    height: 10px;
+    width: 10px;
+    //margin: 4px;
+    border-radius: 100px;
+}
+.instruction__container {
+    min-height: 24px;
+}
+.list-container {
+    margin-bottom: 1.5em;
+}
+.hide {
+    display:none;
+}
+.gry {
+    background: #cccccc44;
+}
+.text--grey {
+    color: #cccccc;
+}
+
+// Handles the 'empty container' text that shows when dragging
+.dragArea #phantom:not(:only-child) {
+    display: none;
+}
+.img {
+    margin: 0;
+    padding: 0;
 }
 </style>

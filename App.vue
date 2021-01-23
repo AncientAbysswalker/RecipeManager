@@ -1,7 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar app color="primary" dark>
-      <Header />
+    <v-app-bar app color="#FFF1B3">
       
       <router-link to="/">
         <div class="d-flex align-center">
@@ -64,11 +63,21 @@ export default {
 
 <style scoped>
 #nav * {
-  color: #fff !important;
+  color: #B29A30 !important;
+  text-decoration-color: #B29A30 !important;
+  text-shadow: none;
+  box-shadow: none;
 }
 
 .wt-tx {
-  color: #fff
+  color: #B29A30;
+  border-bottom: none !important;
+  text-decoration: none !important;
+  background-image: none !important;
+}
+.text-h4:visited {
+  color: #B29A30;
+  
 }
 
 /* Add Fancy Font */
