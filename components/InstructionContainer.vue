@@ -3,109 +3,75 @@
         :class="
             'instruction__container anchor' + (this.top_level ? ' top__level' : '')
         "
-    > <!-- v-on:dragover="dragOver" --> 
-        <div v-if="isEditMode && !this.top_level" class="handle__container can-drag"></div>
-        <p 
-            class="element__title"
-            v-if="!this.top_level"
-        >{{ this.title }}</p>
+    >
+        <div v-if="isEditMode && !this.top_level" class="handle__container handle__element--drag"></div>
+        
+        <!-- Sub-Section Title only if Master Title not already used -->
+        <input v-if="!this.top_level && (elementData.title!=='' || isEditMode)" class="element__title" :disabled="!isEditMode" v-model="elementData.title" placeholder="Sub-Section Title" /> 
 
         <draggable
             class="dragArea"
+            :class="this.top_level ? ' top__level' : ''"
             dragClass="sortable-drag"
-            :class="contents.length==0 && 'gry'"
-            ghostClass="ghost"
-            handle=".can-drag"
+            filter=".no-drag"
+            ghostClass="ghostElement"
+            handle=".handle__element--drag"
             :animation="150"
-            :list="contents"
-            :group="{ name: 'instruction-element' }"
+            :list="elementData.contents"
+            :group="{ name: 'instruction-element', put: (toSortable, fromSortable, draggedElement) => topLevelContainerFilter(toSortable, fromSortable, draggedElement) }"
         >
-            <template v-for="(element, index) in contents">
+            <template v-for="(element, index) in elementData.contents">
                 <InstructionContainer
                     v-if="element.type === 0"
                     :key="index + '-' + element.type"
-                    :title="element.title"
-                    :contents.sync="element.contents"
-                    :class="isEditMode && 'can-drag'"
+                    :elementData="element"
+                    :class="isEditMode && 'handle__element--drag'"
                     :isEditMode="isEditMode"
                 ></InstructionContainer>
-                <div class="anchor" v-else-if="element.type === 1" :key="index + '-' + element.type">
-                    <div v-if="isEditMode" class="handle__component can-drag"></div>
-                    <p 
-                        class="element__notes element__edit--notes"
-                        :contenteditable="isEditMode ? 'true': 'false'"
-                        @keydown="eatEnter"
-                        @focus="onFocus"
-                        @blur="onNotesEdit($event, element)"
-                    >{{element.text}}</p>
-                </div>
-                <div class="anchor list-container" v-else-if="element.type === 2" :key="index + '-' + element.type">
-                    <div v-if="isEditMode" class="handle__component can-drag"></div>
-                    
-                    <draggable
-                        class="dragArea"
-                        dragClass="sortable-drag"
-                        ghostClass="ghost"
-                        handle=".can-drag"
-                        :animation="150"
-                        :list="element.steps"
-                        :group="{ name: 'instruction-list' }"
-                    >
-                        <div
-                            class="element__ordered__list__item anchor"
-                            v-for="(step, index) in element.steps"
-                            :key="'ol' + index"
-                        >
-                            <span v-if="!isEditMode">{{ index + 1 }}</span>
-                            <div v-else class="center"><div class="ball can-drag"></div></div>
-                            <span 
-                                class="element__edit--lists"
-                                :contenteditable="isEditMode ? 'true': 'false'"
-                                @blur="onOrderedListEdit($event, index, element)"
-                            >{{step}}</span>
-                        </div>
-                    </draggable>
+                <div class="element__draggable__container" v-else-if="element.type === 1" :key="index + '-' + element.type">
+                    <div v-if="isEditMode" class="handle__component handle__element--drag"></div>
 
+                    <NotesElement :elementData="element" :isEditMode="isEditMode" />
                 </div>
-                <div
-                    class="element__unordered__list"
-                    :class="isEditMode && 'can-drag'"
-                    v-else-if="element.type === 3"
-                    :key="index + '-' + element.type"
-                >
-                    <p
-                        class="element__unordered__list__item"
-                        v-for="(step, index) in element.steps"
-                        :key="'ul' + index"
-                    >
-                        <span>●</span>{{ step }}
-                    </p>
+                <div class="element__draggable__container" v-else-if="element.type === 2" :key="index + '-' + element.type">
+                    <div v-if="isEditMode" class="handle__component handle__element--drag"></div>
+
+                    <OrderedListElement :elementData="element" :isEditMode="isEditMode" />
                 </div>
-                <!-- <p v-else-if="element.type === 2" :key="index">I am a Ordered List</p> -->
-                <!-- <p v-else-if="element.type === 3" :key="index">I am an Unordered List</p> -->
+                <div class="element__draggable__container" v-else-if="element.type === 3" :key="index + '-' + element.type">
+                    <div v-if="isEditMode" class="handle__component handle__element--drag"></div>
+
+                    <UnorderedListElement :elementData="element" :isEditMode="isEditMode" />
+                </div>
                 <p
                     v-else
                     :key="index + '-' + element.type"
-                    :class="isEditMode && 'can-drag'"
+                    :class="isEditMode && 'handle__element--drag'"
                 >
                     Something has gone horribly wrong! Type
                     {{ element.type }} is invalid!
                 </p>
             </template>
+
             <!-- Empty List Placeholder -->  
-            <p id="phantom" class="element__notes text--grey" key="phantom-text">This Container is Empty</p>
+            <div class="element__draggable__container empty--phantom">
+                <p class="element__text text--grey" key="phantom-text">This Container is Empty</p>
+            </div>
         </draggable>
     </div>
 </template>
 
 <script>
 import draggable from 'vuedraggable';
+import InstructionContainer2 from '../components/InstructionContainer2';
+import NotesElement from '../components/instruction-elements/NotesElement';
+import OrderedListElement from '../components/instruction-elements/OrderedListElement';
+import UnorderedListElement from '../components/instruction-elements/UnorderedListElement';
 
 export default {
     name: 'InstructionContainer',
     props: {
-        title: String,
-        contents: Array,
+        elementData: Object,
         top_level: Boolean,
         isEditMode: {
             type: Boolean,
@@ -113,7 +79,11 @@ export default {
         }
     },
     components: {
-        draggable
+        draggable,
+        InstructionContainer2,
+        NotesElement,
+        OrderedListElement,
+        UnorderedListElement
     },
     methods: {
         log(msg){
@@ -127,243 +97,15 @@ export default {
             }      
             this.log += e.key;
         },
-        onFocus(evt) {
-            evt.target.className += " redborder";
-        },
-        onNotesEdit(evt, notesState) {
-            let updatedContent = evt.target.textContent.replace('\xa0', ' '); // Remove &nbsp and newlines
-            console.log(updatedContent);
-            //evt.target.textContent = updatedContent; // Ensure updated contents
-            notesState.text = updatedContent;
-        },
-        onOrderedListEdit(evt, index, listState) {
-            let updatedContent = evt.target.textContent.replace('\xa0', ' '); // Remove &nbsp and newlines
-            //evt.target.textContent = updatedContent; // Ensure updated contents
-            listState.steps[index] = updatedContent; // Store updated state
-        },
-        updateTitle(newTitle, list) {
-            console.log('ddd');
-            console.log(list);
-            //instructionCard.title = newTitle;
-        },
-        dragOver(evt) {
-            console.log(evt.target.id);
-            console.log(evt.target.id === "phantom");
-            if (evt.target.id === "phantom") {
-                evt.target.classList.add('hide');
-            }
-            //console.log(evt.target.id);//let phantom = console.log(evt.target.classList.add('hide'))
-            //instructionCard.title = newTitle;
-        },
-        showPhantom(evt) {
-            console.log(evt);//let phantom = 
-            //instructionCard.title = newTitle;
+        topLevelContainerFilter(toSortable, fromSortable, draggedElement) {
+            let isElement = (fromSortable.options.group.name==='instruction-element');
+            let notContainerOrTopLevel = (toSortable.el.classList.contains('top__level') || !draggedElement.classList.contains('instruction__container'));
+            return isElement && notContainerOrTopLevel;
         }
-    },
-    watch: {
-        counter: function(){
-            this.$emit('update:counter',this.counter)
-        }
-    },
+    }
 };
 </script>
 
-<style lang="scss" scoped>
-/*.instruction__container {
-    border: red 1px solid;
-    margin: -1px;
-}*/
-
-.subsection__header {
-    margin: 0;
-    padding-left: 0.25em; /* Fix */
-    line-height: 1.5em;
-    font-size: 2em;
-
-    position: relative;
-    top: 0.4em;
-}
-/* ol li:before {
-  content: "•";
-  margin-right: 7px;
-} */
-
-.dragArea {
-    margin: 0;
-    padding: 0;
-}
-
-.sortable-drag {
-    color: red;
-    /*border: 1px black solid;*/
-}
-
-/* General Styling for Elements */
-.element__general { /* Base */
-    margin: 0;
-    line-height: 1.5em;
-    margin-bottom: 1.5em;
-
-    /* Space to vertical line on left and from right of 'card' */
-    padding-left: 0.5em;
-    padding-right: 0.5em;
-}
-/*.top__level:last-child {  Fixing one extra 1px line on card showing 
-    margin-bottom: calc(1.5em - 1.5px);
-}*/
-.element__edit:focus { /* When activaly editing */
-    outline: none;
-    background-color: #cccccc55;
-}
-.element__edit:empty::before { /* Edit mode empty item text */
-    content: 'Instruction Text';
-    color: #cccccc;
-}
-
-/* Styling for Sub-Title */
-.element__title {
-    @extend .element__general;
-    margin-bottom: 0px;
-}
-
-/* Styling for Notes */
-.element__notes {
-    @extend .element__general;
-}
-.element__edit--notes {
-    @extend .element__edit;
-}
-.element__edit--notes:empty::before {
-    content: 'Notes Section Text';
-}
-
-/* Styling for Lists */
-.element__unordered__list,
-.element__ordered__list {
-    @extend .element__general;
-    border: 1px solid red;
-}
-
-.element__unordered__list__item,
-.element__ordered__list__item {
-    margin: 0;
-    padding: 0;
-
-    /* Positioning */
-    //padding-left: 0.5em;
-    position: relative;
-    /* top: 0.4em; */
-}
-/* .element__ordered__list__item:last-child {
-  padding-bottom: 1.5em;
-} */
-.element__unordered__list__item span:first-child,
-.element__ordered__list__item span:first-child {
-    padding: 0;
-    margin: 0; /* Because .paper * line */
-    position: absolute;
-    left: -1.5em;
-}
-.element__unordered__list__item span:last-child,
-.element__ordered__list__item span:last-child {
-    display: inline-block;
-    width:100%;
-}
-.element__edit--lists {
-    @extend .element__edit;
-    line-height: 1.5em;
-}
-.element__edit--lists:empty::before {
-    content: 'List Section Text';
-}
-
-.new__drag, .new__element__drag--notes * {
-    height: 5px;
-}
-.new__element__drag--notes img {
-    height: 5px;
-    width: auto;
-}
-.new__element__drag--drug img {
-    height: 5px;
-    width: auto;
-}
-
-.instruction__container img {
-    height: 5px;
-}
-.sortable-drag img {
-    height: 5px;
-}
-.ghost img {
-    height: 5px;
-}
-.new__element__drag--notes {
-    height: 5px;
-}
-.new__element__drag--drug {
-    height: 5px;
-}
-.redborder {
-    border: red 1px solid;
-}
-.anchor {
-    position: relative;
-}
-.handle__component {
-    position: absolute;
-    left: -25px;
-    background: #cccccc88;
-    height: 100%;
-    width: 20px;
-    border-radius: 5px;
-}
-.handle__container {
-    position: absolute;
-    left: -50px;
-    background: red;
-    height: 100%;
-    width: 20px;
-    border-radius: 5px;
-}
-.center {
-    position: absolute;
-    left: -25px;
-    display: flex;
-    flex: 1;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-}
-.ball {
-    background: #ffffff;
-    height: 10px;
-    width: 10px;
-    //margin: 4px;
-    border-radius: 100px;
-}
-.instruction__container {
-    min-height: 24px;
-}
-.list-container {
-    margin-bottom: 1.5em;
-}
-.hide {
-    display:none;
-}
-.gry {
-    background: #cccccc44;
-}
-.text--grey {
-    color: #cccccc;
-}
-
-// Handles the 'empty container' text that shows when dragging
-.dragArea #phantom:not(:only-child) {
-    display: none;
-}
-.img {
-    margin: 0;
-    padding: 0;
-}
+<style lang="scss">
+    @import './instruction-elements/InstructionElements.scss';
 </style>
