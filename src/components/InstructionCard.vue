@@ -1,9 +1,9 @@
 <template>
     <div class="instruction__card__container">
-        <p class="instruction__card__header" :class="isEditMode ? 'instruction__card__header--edit' : ''" :contenteditable="isEditMode ? 'true' : 'false'" @blur="onEdit">{{this.title}}</p>
+        <input class="element__hdr instruction__card__header" :disabled="!isEditMode" v-model="cardData.title" :placeholder="isEditMode ? 'Instruction Card Title' : ''" />
         <div class="ruled__paper">
             <InstructionContainer
-                :contents="this.contents"
+                :elementData="cardData"
                 top_level
                 :isEditMode="isEditMode"
             />
@@ -17,18 +17,15 @@ import InstructionContainer from '../components/InstructionContainer';
 
 export default {
     name: 'InstructionCard',
-    props: ['title', 'contents', 'isEditMode'],
+    props: {
+        cardData: Object,
+        isEditMode: {
+            type: Boolean,
+            default: false
+        }
+    },
     components: {
         InstructionContainer
-    },
-    methods: {
-        log(msg){
-            console.log(msg); 
-        },
-        onEdit(evt){
-            let updatedContent = evt.target.innerText
-            this.$emit("update-title", updatedContent);
-        }
     }
 };
 </script>
@@ -42,6 +39,8 @@ export default {
 /* Enforce 0 margin styling, as there is an auto-margin -_- */
 /deep/ * {
     border: 0px blue solid;
+    /*margin: 0; Causes issues*/
+    /*padding: 0;*/
     /* margin-bottom: 0 !important; */
     line-height: 1.5em;
 }
@@ -50,18 +49,18 @@ export default {
 .instruction__card__container {
     border: 1px solid #cfcfcf;
     box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.1);
+    padding: 0;
     margin-bottom: 1.5em;
-    bottom: 20px;
 }
 .ruled__paper {
-    display: inline-block;
+    display: block;  /* THIS BUGS THE FUCK OUT IF INLINE with TEXTAREA SPECIFICALLY??? BUT INLINE REALLY HELPS WITH TH FUCKKKING EXTENDED RULES*/
     width: 100%;
     border-top: solid 1px #ffb3b3;
     /* Set a font size */
     font-size: 16px;
     /*height: 500px;*/
-    margin: 0;
-    padding: 0;
+    margin: 0 !important;
+    padding: 0 !important;
     background-repeat: repeat;
 
     /* Begin The Redundancies */
@@ -107,12 +106,29 @@ export default {
   top: 0.2em; */
 }
 
-.instruction__card__header--edit:empty::before { /* Edit mode empty item text */
-    content: 'Instruction Card Title';
+.element__hdr { /* Styling for text areas */
+    display: block;
+    width: 100%;
+    border: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    outline: none;
+}
+.element__hdr:focus { /* When activaly editing */
+    background-color: #cccccc55;
+}
+.element__hdr:disabled { /* Text black if disabled */
+    color: black;
+}
+.element__hdr::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #cccccc;
+    opacity: 1; /* Firefox */
+}
+.element__hdr:-ms-input-placeholder { /* Internet Explorer 10-11 */
     color: #cccccc;
 }
-.instruction__card__header--edit:focus { /* When activaly editing */
-    outline: none;
-    background-color: #cccccc55;
+.element__hdr::-ms-input-placeholder { /* Microsoft Edge */
+    color: #cccccc;
 }
 </style>

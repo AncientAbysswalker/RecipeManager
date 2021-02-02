@@ -19,14 +19,14 @@
                     >Log List State</v-btn>
                 </div>
 
-                <!-- Side Edit Container -->
+                <!-- Side Edit/Toolkit Container -->
                 <div class="edit__mode__tools">
                     <v-tooltip left>
                         <template v-slot:activator="{ on, attrs }">
                             <draggable
                                 class="dragArea"
                                 dragClass="new__element__drag--notes"
-                                ghostClass="ghost"
+                                ghostClass="ghosty"
                                 :animation="150"
                                 :list="[{text: '', type: 1}]"
                                 :group="{ name: 'instruction-element', pull: 'clone', put: false }"
@@ -42,7 +42,7 @@
                             <draggable
                                 class="dragArea"
                                 dragClass="new__element__drag--notes"
-                                ghostClass="ghost"
+                                ghostClass="ghosty"
                                 :animation="150"
                                 :list="[{steps: [''], type: 2}]"
                                 :group="{ name: 'instruction-element', pull: 'clone', put: false }"
@@ -51,6 +51,38 @@
                             </draggable>
                         </template>
                         <span>Numbered List</span>
+                    </v-tooltip>
+                    <hr>
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <draggable
+                                class="dragArea"
+                                dragClass="new__element__drag--notes"
+                                ghostClass="ghosty"
+                                :animation="150"
+                                :list="[{steps: [''], type: 3}]"
+                                :group="{ name: 'instruction-element', pull: 'clone', put: false }"
+                            >
+                                <img class="new__drag--paragraph" src="@/assets/ordered_list.png" v-bind="attrs" v-on="on">
+                            </draggable>
+                        </template>
+                        <span>Bullet List</span>
+                    </v-tooltip>
+                    <hr>
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <draggable
+                                class="dragArea"
+                                dragClass="new__element__drag--notes"
+                                ghostClass="ghosty"
+                                :animation="150"
+                                :list="[{contents: [], title: '', type: 0}]"
+                                :group="{ name: 'instruction-element', pull: 'clone', put: false }"
+                            >
+                                <img class="new__drag--paragraph instruction__container" src="@/assets/ordered_list.png" v-bind="attrs" v-on="on">
+                            </draggable>
+                        </template>
+                        <span>Sub-Section</span>
                     </v-tooltip>
                 </div>
 
@@ -180,12 +212,10 @@
                     :group="{ name: 'instruction-card' }"
                 >
                     <InstructionCard
-                        v-for="container in this.fields.instructions"
-                        :key="container.title"
-                        :title.sync="container.title"
-                        :contents="container.contents"
+                        v-for="(card, index) in this.fields.instructions"
+                        :key="index"
+                        :cardData="card"
                         :isEditMode="is_edit_mode"
-                        @update-title="updateTitle($event, container)"
                     />
                 </draggable>
             </div>
@@ -237,9 +267,6 @@ export default {
         },
         imgPlaceholder(e) {
             e.target.src = require(`@/static/card_error.png`);
-        },
-        updateTitle(newTitle, instructionCard) {
-            instructionCard.title = newTitle;
         },
         printListState() {
             console.log(this.fields.instructions);
@@ -472,12 +499,14 @@ img {
     padding: 0;
     margin-bottom: 1.5em;
 }
-.ghost {
-    font-size: 16px;
-    margin: 0;
-    padding: 0;
-    height: 24px;
-    line-height: 24px;
-    margin-bottom: 24px;
+
+
+/* External influence on the style of the Instruction Elements during cloning from this toolkit */
+.ghostElement {
+    display: block;
+    height: 1.3em;
+    padding: .1em .5em .1em .5em;
+    
+    margin-bottom: 1.5em;
 }
 </style>
