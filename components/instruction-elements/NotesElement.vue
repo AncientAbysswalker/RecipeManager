@@ -17,11 +17,6 @@ export default {
             default: false
         },
         elementData: Object
-    },
-    computed: {
-        copyString(str) {
-            return str.slice()
-        }
     }
 };
 </script>
