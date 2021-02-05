@@ -20,7 +20,7 @@
     margin-bottom: 1.5em;
 }
 
-.dragArea .empty--phantom:not(:only-child) { /* Handles the 'empty container' text that shows when dragging */
+.dragArea .empty--phantom:not(:first-child) { /* Handles the 'empty container' text that shows when dragging */
     display: none;
 }
 
@@ -66,6 +66,12 @@
 .element__list--iterator {
     position: absolute;
     left: -1em;
+}
+
+/* Styling for list iterators (bullets and numbers) */
+.element__list--deletor {
+    position: absolute;
+    right: -1.5em;
 }
 
 /* Styling for Sub-Title */

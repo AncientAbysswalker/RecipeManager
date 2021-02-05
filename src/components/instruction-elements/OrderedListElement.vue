@@ -10,10 +10,14 @@
         <div
             class="anchor"
             v-for="(step, index) in elementData.steps"
-            :key="'ol' + index"
+            :key="'ol' + step"
         >
+            <!-- Iterator or Drag Handle -->
             <div class="element__list--iterator" v-if="!isEditMode">{{ index + 1 }}</div>
             <div v-else class="handle__list--spacer handle__list--drag">#</div>
+
+            <!-- Delete Button -->
+            <DeleteButton v-if="isEditMode" class="element__list--deletor" @delete-component="() => deleteListItem(index)" />
 
             <TextareaAutosize
                 :disabled="!isEditMode"
@@ -24,19 +28,20 @@
             />
         </div>
 
+        <!-- Empty List Placeholder -->  
+        <p class="element__text text--grey empty--phantom" key="phantom-text">This Numbered List is Empty</p>
+
         <v-btn 
             x-small
             color="primary"
-            @click="() => addToList(elementData.steps)"
+            @click="addToList"
         >New</v-btn>
-
-        <!-- Empty List Placeholder -->  
-        <p class="element__text text--grey empty--phantom" key="phantom-text">This Numbered List is Empty</p>
     </draggable>
 </template>
 
 <script>
 import draggable from 'vuedraggable';
+import DeleteButton from '../instruction-elements/DeleteButton';
 
 export default {
     name: 'OrderedListElement',
@@ -48,12 +53,15 @@ export default {
         elementData: Object
     },
     components: {
-        draggable
+        draggable,
+        DeleteButton
     },
     methods: {
-        addToList(steps){
-            console.log(steps)
-            steps.push('');
+        addToList() {
+            this.elementData.steps.push('');
+        },
+        deleteListItem(index) {
+            this.elementData.steps.splice(index, 1);
         }
     }
 };
