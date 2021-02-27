@@ -177,6 +177,83 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             "The id provided must be a single string of 12 bytes or 24 hex characters",
         });
       }
+    })
+
+
+    // [PUT] the data for one recipe using its db id, with optional filtering
+    .put("/:id", (request, response) => {
+      // Log request and save time of request
+      let time_req = log.req_put(request.originalUrl);
+
+      // First confirm that the id request is OK
+      try {
+        // Build new entry from request body. Any fields not included will become null
+        let revised_entry = {
+          name: request.body.name,
+          time_active: request.body.time_active,
+          time_total: request.body.time_total,
+          ingredients: request.body.ingredients,
+          instructions: request.body.instructions,
+          images: request.body.images,
+        };
+
+        // Get the id in the appropriate format
+        let id = new mongo.ObjectID(request.params.id);
+        try {
+          recipes.replaceOne(
+            { _id: id },
+            revised_entry,
+            (err, result) => {
+              if (!err) {
+                // If response is null, no resource is found
+                if (result.modifiedCount === 0) {
+                  log.fail(
+                    "PUT",
+                    request.originalUrl,
+                    time_req,
+                    404,
+                    "The requested resource could not be found"
+                  );
+                  response.status(404).send({
+                    status: 404,
+                    message: "The requested resource could not be found",
+                  });
+                } else {
+                  log.success("PUT", request.originalUrl, time_req, 200);
+                  response.json(result);
+                }
+              } else {
+                log.fail("PUT", request.originalUrl, time_req, 500, err);
+                response.status(500).send({
+                  status: 500,
+                  message: "Internal database exception",
+                });
+              }
+            }
+          );
+        } catch (err) {
+          log.fail("PUT", request.originalUrl, time_req, 500, err);
+          response.status(500).send({
+            status: 500,
+            message: "Internal database exception",
+          });
+        }
+
+        // If the wrong number of bytes is provided
+      } catch {
+        log.fail(
+          "PUT",
+          request.originalUrl,
+          time_req,
+          400,
+          "The id provided must be a single string of 12 bytes or 24 hex characters"
+        );
+        response.status(400).send({
+          status: 400,
+          message:
+            "The id provided must be a single string of 12 bytes or 24 hex characters",
+        });
+      }
     });
 
   return router;

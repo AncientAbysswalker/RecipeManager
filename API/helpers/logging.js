@@ -14,6 +14,11 @@ module.exports = (log_requests, log_errors, color_disabled) => {
     return module.req("[GET]", request);
   };
 
+  // Log timestamp and that a PUT request is recieved to console. Return timestamp of request
+  module.req_put = (request) => {
+    return module.req("[PUT]", request);
+  };
+
   // Log timestamp and that a POST request is recieved to console. Return timestamp of request
   module.req_post = (request) => {
     return module.req("[POST]", request);
@@ -37,18 +42,18 @@ module.exports = (log_requests, log_errors, color_disabled) => {
     // Log request to clf log file
     if (log_requests) {
       fs.appendFile(
-        "./log_req.txt",
+        __dirname + "log_req.txt",
         clf.build("-", "-", time_req, method, request, status, "size"),
-        () => {} // No Callback Needed
+        () => { } // No Callback Needed
       );
     }
 
     // Log request to error log file
     if (log_errors) {
       fs.appendFile(
-        "./log_err.txt",
+        __dirname + "log_err.txt",
         `${time_req}\n${err_str}\n\n`,
-        () => {} // No Callback Needed
+        () => { } // No Callback Needed
       );
     }
   };
@@ -63,9 +68,9 @@ module.exports = (log_requests, log_errors, color_disabled) => {
     // Log request to clf log file
     if (log_requests) {
       fs.appendFile(
-        "./log_req.txt",
+        __dirname + "log_req.txt",
         clf.build("-", "-", time_req, method, request, status, "size"),
-        () => {} // No Callback Needed
+        () => { } // No Callback Needed
       );
     }
   };
