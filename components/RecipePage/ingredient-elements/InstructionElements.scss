@@ -1,0 +1,177 @@
+/* General CSS
+--------------------------------------------------*/
+
+.anchor { /* Make the anchor of a floating element */
+    position: relative;
+}
+
+.text--grey {
+    color: #cccccc;
+}
+
+
+/* Styling for Instruction Card Containers
+--------------------------------------------------*/
+
+.element__draggable__container {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 1.5em;
+}
+
+.dragArea .empty--phantom:not(:first-child) { /* Handles the 'empty container' text that shows when dragging */
+    display: none;
+}
+
+
+/* Styling for Instruction Card Components
+--------------------------------------------------*/
+
+.element__text { /* Styling for text areas */
+    display: block;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    border: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    outline: none;
+    font-family: inherit;
+    font-size: inherit;
+
+    /* Space to vertical line on left and from right of 'card' */
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+.element__text:focus { /* When activaly editing */
+    background-color: #cccccc55;
+}
+.element__text:disabled { /* Text black if disabled */
+    color: black;
+}
+.element__text::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #cccccc;
+    opacity: 1; /* Firefox */
+}
+.element__text:-ms-input-placeholder { /* Internet Explorer 10-11 */
+    color: #cccccc;
+}
+.element__text::-ms-input-placeholder { /* Microsoft Edge */
+    color: #cccccc;
+}
+
+/* Styling for list iterators (bullets and numbers) */
+.element__list--iterator {
+    position: absolute;
+    left: -1em;
+}
+
+/* Positioning for the adder and deletor buttons */
+.element__list--adder {
+    position: absolute;
+    left: -1.5em;
+}
+.element__list--deletor {
+    position: absolute;
+    right: -1.5em;
+}
+
+/* Styling for Sub-Title */
+.element__title {
+    @extend .element__text;
+    font-weight: bold;
+    height: 1.5rem;
+    line-height: 1.5rem;
+    font-size: 1.5rem;
+}
+.editable__title:empty::before { /* Edit mode empty item text */
+    content: 'Section Header Text';
+}
+
+
+/* Styling for drag handles
+--------------------------------------------------*/
+
+.handle__component {
+    position: absolute;
+    left: -25px;
+    background: #cccccc88;
+    height: 100%;
+    width: 20px;
+    border-radius: 5px;
+}
+.handle__container {
+    position: absolute;
+    left: -100px;
+    background: red;
+    height: 100%;
+    width: 20px;
+    border-radius: 5px;
+}
+.handle__list--spacer {
+    position: absolute;
+    font-weight: 950;
+    left: -50px;
+    background: #cccccc88;
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    height: 1.5rem;
+    width: 1.5rem;
+    border-radius: 2rem;
+}
+.handle__list--circle {
+    background: black;
+    height: 10px;
+    width: 10px;
+    margin: 4px;
+    border-radius: 100px;
+}
+
+
+
+
+.dragArea {
+    margin: 0;
+    padding: 0;
+}
+
+
+.top__level:last-child { /* Fixing one extra 1px line on card showing */
+    /*margin-bottom: calc(1.5em - 1.5px); */
+    padding-bottom: 1px; /* TEMPORARY!! */
+}
+
+
+
+
+
+
+
+
+
+
+// Unsuire
+.img {
+    margin: 0;
+    padding: 0;
+}
+
+/* Styling for Cloning Toolkit
+--------------------------------------------------*/
+
+// .ghost img {
+//     height: 5px;
+// }
+
+.sortable-drag img {
+    height: 5px;
+    border: red solid 1px;
+}
+
+.minus {
+    margin-bottom: -1px !important;
+}
