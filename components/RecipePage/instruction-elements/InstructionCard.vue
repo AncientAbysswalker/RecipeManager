@@ -13,7 +13,7 @@
 
 <script>
 // Components Import
-import InstructionContainer from '../components/InstructionContainer';
+import InstructionContainer from './InstructionContainer';
 
 export default {
     name: 'InstructionCard',

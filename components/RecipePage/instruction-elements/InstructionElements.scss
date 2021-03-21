@@ -68,7 +68,11 @@
     left: -1em;
 }
 
-/* Styling for list iterators (bullets and numbers) */
+/* Positioning for the adder and deletor buttons */
+.element__list--adder {
+    position: absolute;
+    left: -1.5em;
+}
 .element__list--deletor {
     position: absolute;
     right: -1.5em;
@@ -166,4 +170,8 @@
 .sortable-drag img {
     height: 5px;
     border: red solid 1px;
+}
+
+.minus {
+    margin-bottom: -1px !important;
 }

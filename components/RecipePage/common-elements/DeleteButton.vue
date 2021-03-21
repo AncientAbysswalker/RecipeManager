@@ -21,32 +21,40 @@ export default {
     data() {
         return {
             // Initialized to zero to begin
-            activatedState: 0
+            currentActivatedState: 0
         }
     },
     methods: {
+        // Handle button activations/clicks
         activateButton() {
-            switch (this.activatedState) {
+            let buttonElement = this.$refs.button;
+
+            switch (this.currentActivatedState) {
+                // Transition from resting state to active state
                 case this.ActivatedState.INACTIVE:
-                    this.$refs.button.classList.remove("notransition") // Reinstate transitions if necessary
-                    this.activatedState = this.ActivatedState.ACTIVATING;
-                    this.$refs.button.classList.add("delete__button--activated");
+                    buttonElement.classList.remove("notransition") // Reinstate transitions if necessary
+                    this.currentActivatedState = this.ActivatedState.ACTIVATING;
+                    buttonElement.classList.add("delete__button--activated");
                     setTimeout(() => {
-                        if (this.activatedState === this.ActivatedState.ACTIVATING) { // Can only transition into active state if we are activating
-                            this.activatedState = this.ActivatedState.ACTIVE 
+                        if (this.currentActivatedState === this.ActivatedState.ACTIVATING) { // Can only transition into active state if we are activating
+                            this.currentActivatedState = this.ActivatedState.ACTIVE 
                         }}, 500);
                     break;
+                // If in active state, emit deletion event
                 case this.ActivatedState.ACTIVE:
-                    this.$refs.button.classList.add("notransition"); // Kill transition due to vue uid problems for duplicate data
+                    buttonElement.classList.add("notransition"); // Kill transition due to vue uid problems for duplicate data
                     this.$emit('delete-component');
                     this.deactivateButton();
                     break;
             }
         },
+        // Handle button deactivation
         deactivateButton() {
-            this.activatedState = this.ActivatedState.DEACTIVATING;
-            this.$refs.button.classList.remove("delete__button--activated");
-            setTimeout(() => this.activatedState = this.ActivatedState.INACTIVE, 500);
+            let buttonElement = this.$refs.button;
+            
+            this.currentActivatedState = this.ActivatedState.DEACTIVATING;
+            buttonElement.classList.remove("delete__button--activated");
+            setTimeout(() => this.currentActivatedState = this.ActivatedState.INACTIVE, 500);
         }
     }
 };

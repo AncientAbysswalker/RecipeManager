@@ -1,5 +1,6 @@
 <template>
     <div
+        class="minus"
         :class="
             'instruction__container anchor' + (this.top_level ? ' top__level' : '')
         "
@@ -63,10 +64,9 @@
 
 <script>
 import draggable from 'vuedraggable';
-import InstructionContainer2 from '../components/InstructionContainer2';
-import NotesElement from '../components/instruction-elements/NotesElement';
-import OrderedListElement from '../components/instruction-elements/OrderedListElement';
-import UnorderedListElement from '../components/instruction-elements/UnorderedListElement';
+import NotesElement from './NotesElement';
+import OrderedListElement from './OrderedListElement';
+import UnorderedListElement from './UnorderedListElement';
 
 export default {
     name: 'InstructionContainer',
@@ -80,7 +80,6 @@ export default {
     },
     components: {
         draggable,
-        InstructionContainer2,
         NotesElement,
         OrderedListElement,
         UnorderedListElement
@@ -107,5 +106,5 @@ export default {
 </script>
 
 <style lang="scss">
-    @import './instruction-elements/InstructionElements.scss';
+    @import './InstructionElements.scss';
 </style>
