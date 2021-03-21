@@ -63,7 +63,7 @@
                                 :list="[{steps: [''], type: 3}]"
                                 :group="{ name: 'instruction-element', pull: 'clone', put: false }"
                             >
-                                <img class="new__drag--paragraph" src="@/assets/ordered_list.png" v-bind="attrs" v-on="on">
+                                <img class="new__drag--paragraph" src="@/assets/unordered_list.png" v-bind="attrs" v-on="on">
                             </draggable>
                         </template>
                         <span>Bullet List</span>
@@ -79,10 +79,26 @@
                                 :list="[{contents: [], title: '', type: 0}]"
                                 :group="{ name: 'instruction-element', pull: 'clone', put: false }"
                             >
-                                <img class="new__drag--paragraph instruction__container" src="@/assets/ordered_list.png" v-bind="attrs" v-on="on">
+                                <img class="new__drag--paragraph instruction__container" src="@/assets/subsection.png" v-bind="attrs" v-on="on">
                             </draggable>
                         </template>
                         <span>Sub-Section</span>
+                    </v-tooltip>
+                    <hr>
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <draggable
+                                class="dragArea"
+                                dragClass="new__element__drag--notes"
+                                ghostClass="ghosty"
+                                :animation="150"
+                                :list="[{contents: [], title: '', type: 0}]"
+                                :group="{ name: 'instruction-card', pull: 'clone', put: false }"
+                            >
+                                <img class="new__drag--paragraph instruction__container" src="@/assets/card.png" v-bind="attrs" v-on="on">
+                            </draggable>
+                        </template>
+                        <span>Instruction Card</span>
                     </v-tooltip>
                 </div>
 
@@ -246,7 +262,7 @@ import draggable from 'vuedraggable';
 const services = require('@/helpers/services');
 
 // Components
-import InstructionCard from '../components/InstructionCard';
+import InstructionCard from '../components/RecipePage/instruction-elements/InstructionCard';
 //import { Carousel, Slide } from "vue-carousel";
 
 export default {
@@ -269,7 +285,69 @@ export default {
             e.target.src = require(`@/static/card_error.png`);
         },
         printListState() {
+            let recipeName = "Mk. 3.5 Test Recipe";
+            let imageList = [
+                    "fc8cf377-6056-476f-9597-6fef05f3c9b5.jpg",
+                    "cf29d86b-d7b5-4684-9aa6-1ff5826a86bd.jpg"
+                ];
+            let activeTime = 20;
+            let totalTime = 60;
+            let yieldAmount = 5;
+            let ingredientJSON = [
+                    {
+                        "title": "First Stage - Preparation",
+                        "ingredients": [
+                            {
+                                "name": "sage",
+                                "quantity":60,
+                                "unit":"cup"
+                            },
+                            {
+                                "name": "oregano",
+                                "quantity":6,
+                                "unit":"tsp"
+                            }
+                        ]
+                    },
+                    {
+                        "title": "Second Stage - Cooking",
+                        "ingredients": [
+                            {
+                                "name": "sage",
+                                "quantity":60,
+                                "unit":"cup"
+                            },
+                            {
+                                "name": "oregano",
+                                "quantity":6,
+                                "unit":"tsp"
+                            }
+                        ]
+                    }
+                ]
+
+            let rawInstructionJSON = this.fields.instructions;
+
+            // Clean JSON
+
+            let updatedRecipe = {
+                "name": recipeName, 
+                "images": imageList,
+                "time_active": activeTime,
+                "time_total": totalTime,
+                "yield": yieldAmount,
+                "ingredients": ingredientJSON,
+                "instructions": rawInstructionJSON
+            }
             console.log(this.fields.instructions);
+
+            // Now run request
+            axios
+                .put(`${this.services.url_api}/${this.$route.params.id}`, updatedRecipe)
+                .then(res => {
+                    console.log(res);
+                })
+                .catch(err => console.log(err));
         }
     },
     mounted() {
@@ -475,7 +553,7 @@ img {
 .edit__mode__tools hr {
     margin: 0;
 
-    padding: 0px;
+    padding: 0;
     margin-left: 10px;
     margin-right: 10px;
     display: block; 
@@ -508,5 +586,9 @@ img {
     padding: .1em .5em .1em .5em;
     
     margin-bottom: 1.5em;
+}
+
+.dragArea {
+    height: 50px;
 }
 </style>
