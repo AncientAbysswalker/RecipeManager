@@ -175,8 +175,8 @@
         <p>{{ this.fields.time_active }} minutes</p>-->
             </div>
 
-            <!-- Ingredients -->
-            <div id="section-ingredients">
+            <!-- Ingredients - OLD -->
+            <!-- <div id="section-ingredients">
                 <h2>Ingredients</h2>
                 <div
                     v-for="(ingredient_section, index) in this.fields
@@ -196,27 +196,25 @@
                             <span>{{ ingredient.unit }}</span>
                             {{ ingredient.name }}
                         </p>
-                        <!-- <table>
-            <tbody>
-              <tr v-for="(ingredient, index) in this.fields.ingredients" v-bind:key="index">
-                <td>{{ ingredient.quantity }}</td>
-                <td>{{ ingredient.unit }}</td>
-                <td>{{ ingredient.name }}</td>
-              </tr>
-            </tbody>
-            </table>-->
                     </div>
                 </div>
+            </div>-->
 
-                <!-- <div>
-          <p
-            v-for="(ingredient, index) in this.fields.ingredients"
-            v-bind:key="index"
-          >
-            {{ ingredient.quantity }} - {{ ingredient.unit }} -
-            {{ ingredient.name }}
-          </p>
-        </div>-->
+            <!-- Ingredients -->
+            <div id="section-ingredients">
+                <h2>Ingredients</h2>
+                <draggable
+                    :animation="150"
+                    :list="this.fields.ingredients"
+                    :group="{ name: 'ingredient-card' }"
+                >
+                    <IngredientCard
+                        v-for="(card, index) in this.fields.ingredients"
+                        :key="index"
+                        :cardData="card"
+                        :isEditMode="is_edit_mode"
+                    />
+                </draggable>
             </div>
 
             <!-- Instructions -->
@@ -263,6 +261,7 @@ const services = require('@/helpers/services');
 
 // Components
 import InstructionCard from '../components/RecipePage/instruction-elements/InstructionCard';
+import IngredientCard from '../components/RecipePage/ingredient-elements/IngredientCard';
 //import { Carousel, Slide } from "vue-carousel";
 
 export default {
@@ -270,6 +269,7 @@ export default {
     props: ['todo', 'item', 'record', 'reqPic'],
     components: {
         InstructionCard,
+        IngredientCard,
         draggable
     },
     data: () => ({
