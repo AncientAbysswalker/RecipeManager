@@ -152,10 +152,11 @@
                             <input class="element__editable--dark" :disabled="!is_edit_mode" v-model="fields.time_total" :placeholder="is_edit_mode ? 'In Minutes' : ''" @keypress="enforceNumber" @focus="focusProdParent" @blur="blurProdParent" @paste="noPaste"/>
                         </div>
                         <div class="production__table__row">
-                            <input class="element__editable--dark" :disabled="!is_edit_mode" :placeholder="is_edit_mode ? 'eg. \'Two Servings\'' : ''" @keypress="enforceNumber" @focus="focusProdParent" @blur="blurProdParent" />
+                            <input class="element__editable--dark" :disabled="!is_edit_mode" v-model="fields.yield" :placeholder="is_edit_mode ? 'eg. \'Two Servings\'' : ''" @focus="focusProdParent" @blur="blurProdParent" />
                         </div>
                         <div class="production__table__row">
-                            <input class="element__editable--dark" :disabled="!is_edit_mode" :placeholder="is_edit_mode ? 'tags?' : ''" @keypress="enforceNumber" @focus="focusProdParent" @blur="blurProdParent" />
+                            <input ref="tagInput" class="element__editable--dark" :disabled="!is_edit_mode" :placeholder="is_edit_mode ? 'Enter a New Tag' : ''" @focus="focusProdParent" @blur="blurProdParent" @keyup.enter="addTag"/>
+                            <span class="tag" v-for="(tag, index) in this.fields.tags" :key="index">{{tag}}</span>
                         </div>
                     </div>
                 </div>
@@ -265,8 +266,8 @@ export default {
                 ];
             let activeTime = 20;
             let totalTime = 60;
-            let yieldAmount = 5;
-            let tags = ["da46gSH","34545","srftj"];
+            let yieldAmount = this.fields.yield;
+            let tags = ['mork', 'merk'];
 
             let rawIngredientsJSON = this.fields.ingredients;
             let rawInstructionJSON = this.fields.instructions;
@@ -279,7 +280,7 @@ export default {
                 "time_active": activeTime,
                 "time_total": totalTime,
                 "yield": yieldAmount,
-                "tags": yieldAmount,
+                "tags": tags,
                 "ingredients": rawIngredientsJSON,
                 "instructions": rawInstructionJSON
             }
@@ -312,10 +313,14 @@ export default {
         },
         blurProdParent(evt) {
             evt.target.parentElement.classList.remove("production__table__row--highlight")
+        },
+        addTag(evt) {
+            let tagInputField = this.$refs.tagInput;
+            this.fields.tags.push(tagInputField.value);
+            tagInputField.value = null;
         }
     },
     mounted() {
-        console.log(5);
         axios
             .get(`${this.services.url_api}/${this.$route.params.id}`)
             .then(res => {
@@ -323,7 +328,6 @@ export default {
                 console.log(this.fields);
             })
             .catch(err => console.log(err));
-        console.log(52);
     }
 };
 </script>
@@ -509,5 +513,11 @@ img {
 }
 .element__editable--dark::placeholder { /* Styling for text areas */
     color: grey;
+}
+.tag {
+    background-color: #aaaaaa;
+    padding: 2px 5px;
+    margin: 5px 5px 5px 0px;
+    border-radius: 5px;
 }
 </style>

@@ -35,6 +35,8 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
           ingredients: request.body.ingredients,
           instructions: request.body.instructions,
           images: request.body.images,
+          tags: request.body.tags,
+          yield: request.body.yield
         };
 
         // Insert one recipe
@@ -195,6 +197,8 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
           ingredients: request.body.ingredients,
           instructions: request.body.instructions,
           images: request.body.images,
+          tags: request.body.tags,
+          yield: request.body.yield
         };
 
         // Get the id in the appropriate format
