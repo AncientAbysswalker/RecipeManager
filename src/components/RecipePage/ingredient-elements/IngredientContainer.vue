@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="anchor">
         <draggable
             class="dragArea"
             dragClass="sortable-drag"
@@ -14,35 +14,34 @@
                 v-for="(ingredient, index) in elementData.ingredients"
                 :key="'ol' + index"
             >
-                <!-- Iterator or Drag Handle -->
-                <div class="element__list--iterator" v-if="!isEditMode">{{ index + 1 }}</div>
-                <div v-else class="handle__list--spacer handle__list--drag">{{ elementData.ingredients[index].quantity }}</div>
+                <!-- Drag Handle -->
+                <div v-if="isEditMode" class="handle__ingredient__list--flexbox handle__list--drag"><div class="handle__list--drag handle__ingredient__list--circle"></div></div>
 
                 <!-- Delete Button -->
-                <DeleteButton v-if="isEditMode" class="element__list--deletor" @delete-component="() => deleteListItem(index)" />
+                <DeleteButton v-if="isEditMode" class="ingredient__list--deletor" @delete-component="() => deleteListItem(index)" />
 
-                <TextareaAutosize
-                    :disabled="!isEditMode"
-                    rows="1" 
-                    class="element__text"
-                    v-model="elementData.ingredients[index].name"
-                    placeholder="List Item Text"
-                />
+                <!-- Quantity -->
+                <input class="ingredient__list--quantity element__text" :disabled="!isEditMode" v-model="elementData.ingredients[index].quantity" :placeholder="isEditMode ? 'qty' : ''" />
+
+                <!-- Unit 
+                <input class="element__text ingredient__list--unit" :disabled="!isEditMode" v-model="elementData.ingredients[index].unit" :placeholder="isEditMode ? 'unit' : ''" />-->
+                <select ref="select" class="element__text ingredient__list--unit" :class="elementData.ingredients[index].unit === '' ? 'lgr' : ''" :placholder="isEditMode ? 'unit' : ''" :disabled="!isEditMode" v-model="elementData.ingredients[index].unit">
+                    <option class="red" value="" disabled selected hidden>unit</option>
+                    <option v-for="option in unitOptions" :value="option.unit" :key="option.unit">
+                        {{ option.unit }}
+                    </option>
+                </select>
+
+                <!-- Name -->
+                <input class="element__text ingredient__list--name" :disabled="!isEditMode" v-model="elementData.ingredients[index].name" :placeholder="isEditMode ? 'name' : ''" />
             </div>
 
             <!-- Empty List Placeholder -->  
             <p class="element__text text--grey empty--phantom" key="phantom-text">This Numbered List is Empty</p>
-            
-            
-            <!-- <v-btn 
-                x-small
-                color="primary"
-                @click="addToList"
-            >New</v-btn>-->
         </draggable>
 
         <!-- Add Button -->
-        <AddButton v-if="isEditMode" class="element__list--adder .handle__list--no--drag" @add-component="addToList" />
+        <AddButton v-if="isEditMode" class="ingredient__list--adder .handle__list--no--drag" @add-component="addToList" />
     </div>
 </template>
 
@@ -60,6 +59,16 @@ export default {
         },
         elementData: Object
     },
+    data: () => ({
+        unitOptions: [
+            {fullName: 'Cup', unit: 'cup'},
+            {fullName: 'Teaspoon', unit: 'tsp'},
+            {fullName: 'Tablespoon', unit: 'tbsp'},
+            {fullName: 'Millilitre', unit: 'ml'},
+            {fullName: 'Ounce', unit: 'oz'},
+            {fullName: 'Fluid Ounce', unit: 'floz'},
+        ]
+    }),
     components: {
         draggable,
         AddButton,
@@ -67,11 +76,15 @@ export default {
     },
     methods: {
         addToList() {
-            this.elementData.steps.push('');
+            this.elementData.ingredients.push({name: '', quantity: '', unit: ''});
         },
         deleteListItem(index) {
-            this.elementData.steps.splice(index, 1);
+            this.elementData.ingredients.splice(index, 1);
         }
     }
 };
 </script>
+
+<style lang="scss">
+    @import './IngredientElements.scss';
+</style>
