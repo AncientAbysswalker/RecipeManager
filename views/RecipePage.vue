@@ -2,7 +2,8 @@
     <div class="recipe__page__container">
         <div class="recipe__page__column">
             <div id="section-header">
-                <h1 class="text-fancy">{{ this.fields.name }}</h1>
+                <input class="recipe-title text-fancy element__editable" :disabled="!is_edit_mode" v-model="fields.name" :placeholder="is_edit_mode ? 'Recipe Title' : ''" />
+                <!-- <h1 class="text-fancy">{{ this.fields.name }}</h1> -->
 
                 <!-- Top Edit Container -->
                 <div class="edit-mode">
@@ -16,7 +17,12 @@
                         x-small
                         color="primary"
                         @click="printListState"
-                    >Log List State</v-btn>
+                    >Log List States</v-btn>
+                    <v-btn 
+                        x-small
+                        color="primary"
+                        @click="saveListState"
+                    >Save List States</v-btn>
                 </div>
 
                 <!-- Side Edit/Toolkit Container -->
@@ -114,24 +120,6 @@
                         "
                         @error="imgPlaceholder"
                     ></v-carousel-item>
-                    <!-- <slide>
-          <img
-            :src="
-              `${this.services.url_cdn}/${this.fields.images[0]}` ||
-                require(`@/static/card_loading.png`)
-            "
-            @error="imgPlaceholder"
-          />
-        </slide>
-        <slide>
-          <img
-            :src="
-              `${this.services.url_cdn}/${this.fields.images[1]}` ||
-                require(`@/static/card_loading.png`)
-            "
-            @error="imgPlaceholder"
-          />
-          </slide>-->
                     <v-carousel-item
                         v-else
                         v-for="(image, index) in this.fields.images"
@@ -145,60 +133,33 @@
                 </v-carousel>
             </div>
 
-            <!-- <img
-        v-bind:src="
-          (this.fields.images !== undefined && this.fields.images.length > 0
-            ? `${this.services.url_cdn}/${this.fields.images[0]}`
-            : require(`@/static/card_default.png`)) ||
-            require(`@/static/card_loading.png`)
-        "
-        @error="imgPlaceholder"
-      />-->
-            <div id="section__production">
-                <table>
-                    <tbody>
-                        <tr>
-                            <td>Active Time</td>
-                            <td>{{ this.fields.time_active }} minutes</td>
-                        </tr>
-                        <tr>
-                            <td>Total Time</td>
-                            <td>{{ this.fields.time_total }} minutes</td>
-                        </tr>
-                        <tr>
-                            <td>Yield</td>
-                            <td>MANY FOODS minutes</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <!-- <p>{{ this.fields.time_passive }} minutes</p>
-        <p>{{ this.fields.time_active }} minutes</p>-->
-            </div>
-
-            <!-- Ingredients - OLD -->
-            <!-- <div id="section-ingredients">
-                <h2>Ingredients</h2>
-                <div
-                    v-for="(ingredient_section, index) in this.fields
-                        .ingredients"
-                    :key="index"
-                    class="instruction__card__container"
-                >
-                    <p class="instruction__card__header">Optional Header?</p>
-                    <div class="paper">
-                        <p
-                            class="subsection__numbered__item"
-                            v-for="(ingredient,
-                            index) in ingredient_section.ingredients"
-                            v-bind:key="index"
-                        >
-                            <span>{{ ingredient.quantity }}</span>
-                            <span>{{ ingredient.unit }}</span>
-                            {{ ingredient.name }}
-                        </p>
+            <!-- Production -->
+            <div id="section-production">
+                <div class="production__table__grid">
+                    <div class="production__table__col--1">
+                        <div>Active Time</div>
+                        <div>Total Time</div>
+                        <div>Yield</div>
+                        <div>Tags</div>
+                    </div>
+                    <div class="production__table__col--2">
+                        <div class="production__table__row--suffix-input">
+                            <span>{{ fields.time_active ? fields.time_active + ' minutes' : '' }}</span>
+                            <input class="element__editable--dark" :disabled="!is_edit_mode" v-model="fields.time_active" :placeholder="is_edit_mode ? 'In Minutes' : ''" @keypress="enforceNumber" @focus="focusProdParent" @blur="blurProdParent" @paste="noPaste"/>
+                        </div>
+                        <div class="production__table__row--suffix-input" @keypress="enforceNumber">
+                            <span>{{ fields.time_total ? fields.time_total + ' minutes' : '' }}</span>
+                            <input class="element__editable--dark" :disabled="!is_edit_mode" v-model="fields.time_total" :placeholder="is_edit_mode ? 'In Minutes' : ''" @keypress="enforceNumber" @focus="focusProdParent" @blur="blurProdParent" @paste="noPaste"/>
+                        </div>
+                        <div class="production__table__row">
+                            <input class="element__editable--dark" :disabled="!is_edit_mode" :placeholder="is_edit_mode ? 'eg. \'Two Servings\'' : ''" @keypress="enforceNumber" @focus="focusProdParent" @blur="blurProdParent" />
+                        </div>
+                        <div class="production__table__row">
+                            <input class="element__editable--dark" :disabled="!is_edit_mode" :placeholder="is_edit_mode ? 'tags?' : ''" @keypress="enforceNumber" @focus="focusProdParent" @blur="blurProdParent" />
+                        </div>
                     </div>
                 </div>
-            </div>-->
+            </div>
 
             <!-- Ingredients -->
             <div id="section-ingredients">
@@ -207,6 +168,7 @@
                     :animation="150"
                     :list="this.fields.ingredients"
                     :group="{ name: 'ingredient-card' }"
+                    handle=".nerp"
                 >
                     <IngredientCard
                         v-for="(card, index) in this.fields.ingredients"
@@ -285,7 +247,18 @@ export default {
             e.target.src = require(`@/static/card_error.png`);
         },
         printListState() {
-            let recipeName = "Mk. 3.5 Test Recipe";
+            let rawInstructionJSON = this.fields.instructions;
+            let rawIngredientsJSON = this.fields.ingredients;
+
+            console.log("Title");
+            console.log(this.fields.name);
+            console.log("Instructions");
+            console.log(this.fields.instructions);
+            console.log("Ingredients");
+            console.log(this.fields.ingredients);
+        },
+        saveListState() {
+            let recipeName = this.fields.name;
             let imageList = [
                     "fc8cf377-6056-476f-9597-6fef05f3c9b5.jpg",
                     "cf29d86b-d7b5-4684-9aa6-1ff5826a86bd.jpg"
@@ -293,39 +266,9 @@ export default {
             let activeTime = 20;
             let totalTime = 60;
             let yieldAmount = 5;
-            let ingredientJSON = [
-                    {
-                        "title": "First Stage - Preparation",
-                        "ingredients": [
-                            {
-                                "name": "sage",
-                                "quantity":60,
-                                "unit":"cup"
-                            },
-                            {
-                                "name": "oregano",
-                                "quantity":6,
-                                "unit":"tsp"
-                            }
-                        ]
-                    },
-                    {
-                        "title": "Second Stage - Cooking",
-                        "ingredients": [
-                            {
-                                "name": "sage",
-                                "quantity":60,
-                                "unit":"cup"
-                            },
-                            {
-                                "name": "oregano",
-                                "quantity":6,
-                                "unit":"tsp"
-                            }
-                        ]
-                    }
-                ]
+            let tags = ["da46gSH","34545","srftj"];
 
+            let rawIngredientsJSON = this.fields.ingredients;
             let rawInstructionJSON = this.fields.instructions;
 
             // Clean JSON
@@ -336,7 +279,8 @@ export default {
                 "time_active": activeTime,
                 "time_total": totalTime,
                 "yield": yieldAmount,
-                "ingredients": ingredientJSON,
+                "tags": yieldAmount,
+                "ingredients": rawIngredientsJSON,
                 "instructions": rawInstructionJSON
             }
             console.log(this.fields.instructions);
@@ -348,6 +292,26 @@ export default {
                     console.log(res);
                 })
                 .catch(err => console.log(err));
+        },
+        enforceNumber(evt) {
+            let keyCode = evt.keyCode;
+
+            // only allow number and one dot
+            if (
+                (keyCode < 48 || keyCode > 57) &&
+                (keyCode !== 46)
+            ) {
+                evt.preventDefault();
+            }
+        },
+        noPaste(evt) {
+            evt.preventDefault();
+        },
+        focusProdParent(evt) {
+            evt.target.parentElement.classList.add("production__table__row--highlight")
+        },
+        blurProdParent(evt) {
+            evt.target.parentElement.classList.remove("production__table__row--highlight")
         }
     },
     mounted() {
@@ -364,7 +328,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 /* Global and container */
 .recipe__page__container {
     display: flex;
@@ -382,12 +346,6 @@ export default {
     border: orange solid 0px;
     margin-bottom: 15px;
 }
-h1 {
-    font-size: 50px;
-}
-h2 {
-    font-size: 24px;
-}
 
 /* To help position the edit mode button(s) */
 #section-header {
@@ -395,9 +353,13 @@ h2 {
 }
 
 /* Header and Carousel */
-
+.recipe-title {
+    font-size: 50px;
+    font-weight: bold;
+    width: 100%;
+}
 .text-fancy {
-    font-family: 'QuickKiss', Helvetica, Arial;
+    font-family: 'AllPink', Helvetica, Arial;
     font-weight: 100;
 }
 .caru {
@@ -405,125 +367,6 @@ h2 {
 }
 img {
     width: 500px;
-}
-/* ol li {
-  margin-left: 50px;
-  list-style: upper-roman;
-  color: red;
-} */
-
-/* Production Section */
-#section__production {
-    background-color: lightgrey;
-    padding: 10px;
-}
-/* Styling based on https://codesandbox.io/s/zealous-snowflake-ri6cp?file=/style.css:182-530 */
-#section__production table {
-    border-collapse: collapse;
-}
-/* First Column */
-#section__production tr td:first-child {
-    border-right: grey solid 2px;
-    color: grey;
-    text-align: right;
-}
-/* Second Column */
-#section__production tr td:nth-child(2) {
-    font-weight: bold;
-}
-
-#section__production td {
-    min-width: 120px;
-    padding: 5px;
-}
-
-#section-ingredients table {
-    border: 2px solid #42b983;
-    border-collapse: collapse;
-    margin: 10px;
-}
-#section-ingredients tr {
-    border: red solid 1px;
-}
-#section-ingredients tr td:first-child {
-    text-align: right;
-}
-#section-ingredients tr td:nth-child(2) {
-    border-right: black solid 1px;
-}
-
-#section-ingredients td {
-    min-width: 120px;
-    padding: 10px 20px;
-}
-
-.paper {
-    border-top: solid 1px #ffb3b3;
-    /* Set a font size */
-    font-size: 16px;
-    /*height: 500px;*/
-    margin: 0;
-    padding: 0;
-    background-repeat: repeat;
-
-    /* Begin The Redundancies */
-    background-image: -webkit-linear-gradient(
-            0deg,
-            transparent 4em,
-            rgba(255, 0, 0, 0.2) 0,
-            transparent 4.1em
-        ),
-        -webkit-linear-gradient(90deg, rgba(0, 0, 255, 0.3) 1px, transparent 0);
-    /*background-image:
-    -moz-linear-gradient(0deg, transparent 5em, rgba(255,0,0,.2) 0, transparent 5.1em),
-    -moz-linear-gradient(rgba(0,0,255,.3) 1px, transparent 0);
-  background-image:
-    -o-linear-gradient(0deg, transparent 5em, rgba(255,0,0,.2) 0, transparent 5.1em),
-    -o-linear-gradient(rgba(0,0,255,.3) 1px, transparent 0);
-  background-image:
-    -ms-linear-gradient(0deg, transparent 5em, rgba(255,0,0,.2) 0, transparent 5.1em),
-    -ms-linear-gradient(rgba(0,0,255,.3) 1px, transparent 0);*/
-    -webkit-background-size: 100% 1.5em;
-    /*-moz-background-size: 100% 2em;*/
-
-    /* In a perfect world... */
-    /*background-image:
-    linear-gradient(0deg, transparent 5em, rgba(255,0,0,.2) 0, transparent 5.1em),
-    linear-gradient(rgba(0,0,255,.3) 1px, transparent 0);
-  background-size: 100% 2em;*/
-}
-/* .paper * {
-  margin: 0;
-  padding: 0;
-  height: 1.5em;
-} */
-
-.subsection__numbered__item {
-    margin: 0;
-    line-height: 1.5em;
-
-    /* Positioning */
-    padding-left: 0.5em;
-    position: relative;
-    top: 0.4em;
-}
-.instruction__card__header {
-    margin-bottom: 0;
-    font-size: 32px;
-    font-weight: bold;
-    padding: 0.25em 0.5em 0.25em 0.5em;
-    line-height: 1em;
-    height: 1.5em;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    /* position: relative;
-  top: 0.2em; */
-}
-
-/* Space between Instruction Cards */
-#section-instructions > div:not(:last-child) {
-    margin-bottom: 20px;
 }
 
 /* Edit Mode Area */
@@ -535,7 +378,6 @@ img {
 .edit-mode > * {
     margin-right:25px;
 }
-
 .edit__mode__tools {
     position: fixed;
     right: 0px;
@@ -543,7 +385,6 @@ img {
     background: #FFF1B3;
     border-radius: 10px 0 0 10px;
 }
-
 .edit__mode__tools img {
     margin: 10px;
     padding: 0;
@@ -569,7 +410,6 @@ img {
 .edit__mode__tools hr:last-child {
     margin-bottom: 10px;
 }
-
 .new__drag--paragraph {
     height: 1.5em;
     width: auto;
@@ -577,18 +417,97 @@ img {
     padding: 0;
     margin-bottom: 1.5em;
 }
-
-
-/* External influence on the style of the Instruction Elements during cloning from this toolkit */
-.ghostElement {
+.ghostElement { /* External influence on the style of the Instruction Elements during cloning from this toolkit */
     display: block;
     height: 1.3em;
     padding: .1em .5em .1em .5em;
     
     margin-bottom: 1.5em;
 }
-
-.dragArea {
+.dragArea { /* Don't know?? */
     height: 50px;
+}
+
+.element__editable { /* Styling for text areas */
+    margin: 0;
+    padding: 0;
+    border: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    outline: none;
+
+    /* Space to vertical line on left and from right of 'card' */
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+.element__editable:focus { /* When activaly editing */
+    background-color: #cccccc55;
+}
+.element__editable:disabled { /* Text black if disabled */
+    color: black;
+}
+.element__editable::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #cccccc;
+    opacity: 1; /* Firefox */
+}
+.element__editable:-ms-input-placeholder { /* Internet Explorer 10-11 */
+    color: #cccccc;
+}
+.element__editable::-ms-input-placeholder { /* Microsoft Edge */
+    color: #cccccc;
+}
+
+/* Production Section */
+#section-production {
+    background-color: lightgrey;
+    padding: 10px;
+}
+.production__table__grid {
+    display: flex;
+}
+.production__table__col {
+    min-width: 120px;
+}
+.production__table__col--1 {
+    @extend .production__table__col;
+    flex: 1;
+    border-right: grey solid 2px;
+    color: grey;
+    text-align: right;
+}
+.production__table__col--2 {
+    @extend .production__table__col;
+    flex: 7;
+}
+.production__table__col > * {
+    padding: 5px;
+    margin: 0;
+}
+.production__table__row--highlight {
+    background-color: #dedede;
+}
+.production__table__row * {
+    padding: 0;
+    width: 100%;
+    font-weight: bold;
+}
+.production__table__row--suffix-input { /* For unit (suffix) handling */
+    @extend .production__table__row;
+    display: flex;
+}
+.production__table__row--suffix-input > input {
+    margin-left: -100%;
+    color: transparent;
+}
+.element__editable--dark { /* Styling for text areas */
+    @extend .element__editable;    
+    caret-color: black;
+}
+.element__editable--dark:focus { /* When activaly editing */
+    background-color: transparent;
+}
+.element__editable--dark::placeholder { /* Styling for text areas */
+    color: grey;
 }
 </style>

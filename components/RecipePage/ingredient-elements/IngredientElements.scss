@@ -28,6 +28,16 @@
 /* Styling for Instruction Card Components
 --------------------------------------------------*/
 
+.ingredient__list--unit {
+    display: inline-block !important;
+    width: 10% !important;
+}
+
+.ingredient__list--name {
+    display: inline-block !important;
+    width: 90% !important;
+}
+
 .element__text { /* Styling for text areas */
     display: block;
     margin: 0;
@@ -63,17 +73,20 @@
 }
 
 /* Styling for list iterators (bullets and numbers) */
-.element__list--iterator {
+.ingredient__list--quantity {
     position: absolute;
-    left: -1em;
+    right: 100%;
+    width: 4em;
+    text-align: right;
+    padding-right: 0.5rem
 }
 
 /* Positioning for the adder and deletor buttons */
-.element__list--adder {
+.ingredient__list--adder {
     position: absolute;
     left: -1.5em;
 }
-.element__list--deletor {
+.ingredient__list--deletor {
     position: absolute;
     right: -1.5em;
 }
@@ -110,17 +123,19 @@
     width: 20px;
     border-radius: 5px;
 }
-.handle__list--spacer {
+.handle__ingredient__list--flexbox {
     position: absolute;
-    font-weight: 950;
-    left: -50px;
-    background: #cccccc88;
+    height: 1.5em;
+    left: -5.25em;
     display: flex;
     flex: 1;
     justify-content: center;
     align-items: center;
-    height: 1.5rem;
-    width: 1.5rem;
+}
+.handle__ingredient__list--circle {
+    background: #cccccc88;
+    height: 1rem;
+    width: 1rem;
     border-radius: 2rem;
 }
 .handle__list--circle {
@@ -174,4 +189,8 @@
 
 .minus {
     margin-bottom: -1px !important;
+}
+
+.lgr {
+    color: #cccccc;
 }

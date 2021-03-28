@@ -89,4 +89,12 @@ export default {
   font-family: "QuickKiss";
   src: local("QuickKiss"), url(./fonts/QuickKiss.ttf) format("truetype");
 }
+@font-face {
+  font-family: "Secrets";
+  src: local("GirlsHaveManySecrets"), url(./fonts/GirlsHaveManySecrets.ttf) format("truetype");
+}
+@font-face {
+  font-family: "AllPink";
+  src: local("AllThingsPink"), url(./fonts/AllThingsPink.ttf) format("truetype");
+}
 </style>
