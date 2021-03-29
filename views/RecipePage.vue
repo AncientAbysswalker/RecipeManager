@@ -133,7 +133,7 @@
                 </v-carousel>
             </div>
 
-            <!-- Production -->
+            <!-- Production - not split into a separate component because it is simple -->
             <div id="section-production">
                 <div class="production__table__grid">
                     <div class="production__table__col--1">
@@ -156,7 +156,9 @@
                         </div>
                         <div class="production__table__row">
                             <input ref="tagInput" class="element__editable--dark" :disabled="!is_edit_mode" :placeholder="is_edit_mode ? 'Enter a New Tag' : ''" @focus="focusProdParent" @blur="blurProdParent" @keyup.enter="addTag"/>
-                            <span class="tag" v-for="(tag, index) in this.fields.tags" :key="index">{{tag}}</span>
+                        </div>
+                        <div class="tags__container">
+                            <div tabindex="0" class="tag" v-for="(tag, index) in this.fields.tags" :key="index + tag" @click="showClose" @blur="hideClose">{{tag}}<DeleteTagButton v-if="is_edit_mode" class="hide tag--deletor" @delete-component="() => deleteTag(index)"></DeleteTagButton></div>
                         </div>
                     </div>
                 </div>
@@ -225,6 +227,7 @@ const services = require('@/helpers/services');
 // Components
 import InstructionCard from '../components/RecipePage/instruction-elements/InstructionCard';
 import IngredientCard from '../components/RecipePage/ingredient-elements/IngredientCard';
+import DeleteTagButton from '../components/RecipePage/common-elements/DeleteTagButton';
 //import { Carousel, Slide } from "vue-carousel";
 
 export default {
@@ -233,7 +236,8 @@ export default {
     components: {
         InstructionCard,
         IngredientCard,
-        draggable
+        draggable,
+        DeleteTagButton
     },
     data: () => ({
         fields: [],
@@ -267,7 +271,7 @@ export default {
             let activeTime = 20;
             let totalTime = 60;
             let yieldAmount = this.fields.yield;
-            let tags = ['mork', 'merk'];
+            let tags = this.fields.tags;
 
             let rawIngredientsJSON = this.fields.ingredients;
             let rawInstructionJSON = this.fields.instructions;
@@ -318,6 +322,21 @@ export default {
             let tagInputField = this.$refs.tagInput;
             this.fields.tags.push(tagInputField.value);
             tagInputField.value = null;
+        },
+        showClose(evt) {
+            let closeButtonElement = evt.target.firstElementChild;
+            if (closeButtonElement) {
+                closeButtonElement.classList.remove("hide")
+            }
+        },
+        hideClose(evt) {
+             let closeButtonElement = evt.target.firstElementChild;
+            if (closeButtonElement) {
+                closeButtonElement.classList.add("hide")
+            }
+        },
+        deleteTag(index) {
+            this.fields.tags.splice(index, 1);
         }
     },
     mounted() {
@@ -504,6 +523,14 @@ img {
     margin-left: -100%;
     color: transparent;
 }
+.tags__container {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 5px 0 0 5px;
+}
+.tags__container:empty {
+  display: none;
+}
 .element__editable--dark { /* Styling for text areas */
     @extend .element__editable;    
     caret-color: black;
@@ -515,9 +542,21 @@ img {
     color: grey;
 }
 .tag {
+    font-weight: bold;
+    position: relative;
     background-color: #aaaaaa;
     padding: 2px 5px;
-    margin: 5px 5px 5px 0px;
+    margin: 0 5px 5px 0;
     border-radius: 5px;
+    outline: none;
+}
+.hide {
+    display: none;
+}
+.tag--deletor {
+    position: absolute;
+    right: -0.4em;
+    top: -0.4em;
+    z-index: 1;
 }
 </style>
