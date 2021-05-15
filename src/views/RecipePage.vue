@@ -154,7 +154,7 @@
                         <div class="production__table__row">
                             <input class="element__editable--dark" :disabled="!is_edit_mode" v-model="fields.yield" :placeholder="is_edit_mode ? 'eg. \'Two Servings\'' : ''" @focus="focusProdParent" @blur="blurProdParent" />
                         </div>
-                        <div class="production__table__row">
+                        <div class="production__table__row" v-show="is_edit_mode">
                             <input ref="tagInput" class="element__editable--dark" :disabled="!is_edit_mode" :placeholder="is_edit_mode ? 'Enter a New Tag' : ''" @focus="focusProdParent" @blur="blurProdParent" @keyup.enter="addTag"/>
                         </div>
                         <div class="tags__container">
@@ -260,6 +260,7 @@ export default {
             console.log("Instructions");
             console.log(this.fields.instructions);
             console.log("Ingredients");
+            this.cleanIngredientInputs();
             console.log(this.fields.ingredients);
         },
         saveListState() {
@@ -320,7 +321,10 @@ export default {
         },
         addTag(evt) {
             let tagInputField = this.$refs.tagInput;
-            this.fields.tags.push(tagInputField.value);
+            let tagInputText = tagInputField.value.trim();
+            if (!(this.fields.tags.map((tag) => { return tag.toLowerCase() }).includes(tagInputText.toLowerCase()))) {
+                this.fields.tags.push(tagInputText);
+            }
             tagInputField.value = null;
         },
         showClose(evt) {
@@ -337,6 +341,27 @@ export default {
         },
         deleteTag(index) {
             this.fields.tags.splice(index, 1);
+        },
+        cleanIngredientInputs() {
+            let rawIngredientsJSON = this.fields.ingredients;
+            for (let ingredientSection of rawIngredientsJSON) {
+                ingredientSection.title = ingredientSection.title.trim();
+                for (let i = 0; i < ingredientSection.ingredients.length; i++) {
+                    let currentIngredient = ingredientSection.ingredients[i];
+                    let nameText = currentIngredient.name.trim();
+                    let quantityText = ('' + currentIngredient.quantity).trim(); // Make sure to cast just in case
+                    let unitText = currentIngredient.unit.trim();
+
+                    // If any of the fields are not filled out then remove the ingredient from the array
+                    if (nameText.length === 0 || unitText.length === 0 || quantityText.length === 0) {
+                        ingredientSection.ingredients.splice(i, 1);
+                    } else {
+                        currentIngredient.name = nameText;
+                        currentIngredient.quantity = quantityText;
+                        currentIngredient.unit = unitText;
+                    }
+                }
+            }
         }
     },
     mounted() {
