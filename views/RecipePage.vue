@@ -346,7 +346,7 @@ export default {
             let rawIngredientsJSON = this.fields.ingredients;
             for (let ingredientSection of rawIngredientsJSON) {
                 ingredientSection.title = ingredientSection.title.trim();
-                for (let i = 0; i < ingredientSection.ingredients.length; i++) {
+                for (let i = ingredientSection.ingredients.length - 1; i >= 0; i--) {
                     let currentIngredient = ingredientSection.ingredients[i];
                     let nameText = currentIngredient.name.trim();
                     let quantityText = ('' + currentIngredient.quantity).trim(); // Make sure to cast just in case
