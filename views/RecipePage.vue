@@ -252,12 +252,13 @@ export default {
             e.target.src = require(`@/static/card_error.png`);
         },
         printListState() {
-            let rawInstructionJSON = this.fields.instructions;
-            let rawIngredientsJSON = this.fields.ingredients;
+            //let rawInstructionJSON = this.fields.instructions;
+            //let rawIngredientsJSON = this.fields.ingredients;
 
             console.log("Title");
             console.log(this.fields.name);
             console.log("Instructions");
+            this.cleanInstructionInputs();
             console.log(this.fields.instructions);
             console.log("Ingredients");
             this.cleanIngredientInputs();
@@ -342,6 +343,7 @@ export default {
         deleteTag(index) {
             this.fields.tags.splice(index, 1);
         },
+        // This function is responsible for 'cleaning' the state of the whole ingredients object 
         cleanIngredientInputs() {
             let rawIngredientsJSON = this.fields.ingredients;
             for (let ingredientSection of rawIngredientsJSON) {
@@ -362,7 +364,84 @@ export default {
                     }
                 }
             }
-        }
+        },
+        // This function is responsible for 'cleaning' the state of the whole instructions object 
+        cleanInstructionInputs() {
+            let rawInstructionsJSON = this.fields.instructions;
+            for (let h = rawInstructionsJSON.length - 1; h >= 0; h--) {
+                let instructionSection = rawInstructionsJSON[h];
+
+                // Ensure each instruction card has instructions in it
+                if (instructionSection.contents.length === 0) {
+                    rawInstructionsJSON.splice(h, 1);
+                } else {
+                    // Trim title
+                    instructionSection.title = instructionSection.title.trim();
+
+                    // Deal with contents
+                    for (let i = instructionSection.contents.length - 1; i >= 0; i--) {
+                        let currentElement = instructionSection.contents[i];
+                        let currentElementType = currentElement.type;
+
+                        // Is the element a sub-container or just an element?
+                        if (currentElementType === 0) {
+                            // Ensure the sub-section has instructions in it
+                            if (currentElement.contents.length === 0) {
+                                instructionSection.contents.splice(i, 1);
+                            } else {
+                                // Trim title
+                                currentElement.title = currentElement.title.trim();
+
+                                // Deal with contents
+                                for (let k = currentElement.contents.length - 1; k >= 0; k--) {
+                                    let currentSubElement = currentElement.contents[k];
+                                    cleanLeafElement(currentElement.contents, currentSubElement, k);
+                                }
+                            }
+                        } else {
+                            cleanLeafElement(instructionSection.contents, currentElement, i);
+                        }
+                    }
+                }
+            }
+
+            // This helper function is responsible for 'cleaning' the state of a single element in the instructions object 
+            function cleanLeafElement(elementsList, currentElement, index) {
+                let currentElementType = currentElement.type;
+
+                switch(currentElementType) {
+                    case 1: { // FreeField
+                        let freeText = currentElement.text.trim();
+                        if (freeText.length === 0) {
+                            elementsList.splice(index, 1);
+                        } else {
+                            currentElement.text = freeText;
+                        }
+                        break;
+                    }
+                    case 2: case 3: { // Lists
+                        let steps = currentElement.steps;
+                        if (currentElement.steps.length === 0) {
+                            elementsList.splice(index, 1);
+                        } else {
+                            for (let j = currentElement.steps.length - 1; j >= 0; j--) {
+                                let currentStepText = currentElement.steps[j].trim();
+                                if (currentStepText.length === 0) {
+                                    currentElement.steps.splice(j, 1);
+                                } else {
+                                    currentElement.steps[j] = currentStepText;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    default: {
+                        console.log('Unhandled Instructions Structure: ' + JSON.stringify(currentElement));
+                        break;
+                    }
+                } 
+            }
+        },
     },
     mounted() {
         axios
