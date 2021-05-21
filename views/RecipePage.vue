@@ -21,7 +21,7 @@
                     <v-btn 
                         x-small
                         color="primary"
-                        @click="saveListState"
+                        @click="saveRecipeChanges"
                     >Save List States</v-btn>
                 </div>
 
@@ -158,7 +158,7 @@
                             <input ref="tagInput" class="element__editable--dark" :disabled="!is_edit_mode" :placeholder="is_edit_mode ? 'Enter a New Tag' : ''" @focus="focusProdParent" @blur="blurProdParent" @keyup.enter="addTag"/>
                         </div>
                         <div class="tags__container">
-                            <div tabindex="0" class="tag" v-for="(tag, index) in this.fields.tags" :key="index + tag" @click="showClose" @blur="hideClose">{{tag}}<DeleteTagButton v-if="is_edit_mode" class="hide tag--deletor" @delete-component="() => deleteTag(index)"></DeleteTagButton></div>
+                            <div tabindex="0" class="tag" v-for="(tag, index) in this.fields.tags" :key="index + tag" @click="showTagClose" @blur="hideTagClose">{{tag}}<DeleteTagButton v-if="is_edit_mode" class="hide tag--deletor" @delete-component="() => deleteTag(index)"></DeleteTagButton></div>
                         </div>
                     </div>
                 </div>
@@ -240,65 +240,55 @@ export default {
         DeleteTagButton
     },
     data: () => ({
-        fields: [],
+        fields: {
+            name: "",
+            time_active: null,
+            time_total: null,
+            'yield': "",
+            tags: [],
+            images: [],
+            ingredients: [],
+            instructions: [],
+            _id: null
+        },
         services: services,
         is_edit_mode: true
     }),
     methods: {
-        markComplete() {
-            this.todo.completed = !this.todo.completed;
-        },
         imgPlaceholder(e) {
             e.target.src = require(`@/static/card_error.png`);
         },
         printListState() {
-            //let rawInstructionJSON = this.fields.instructions;
-            //let rawIngredientsJSON = this.fields.ingredients;
-
-            console.log("Title");
-            console.log(this.fields.name);
-            console.log("Instructions");
-            this.cleanInstructionInputs();
-            console.log(this.fields.instructions);
-            console.log("Ingredients");
-            this.cleanIngredientInputs();
-            console.log(this.fields.ingredients);
+            console.log(this.fields);
         },
-        saveListState() {
-            let recipeName = this.fields.name;
+        saveRecipeChanges() {
+            //start 'loading' here
+            this.cleanRecipeInputs();
+
+            //console.log(this.fields.images);
             let imageList = [
-                    "fc8cf377-6056-476f-9597-6fef05f3c9b5.jpg",
-                    "cf29d86b-d7b5-4684-9aa6-1ff5826a86bd.jpg"
-                ];
-            let activeTime = 20;
-            let totalTime = 60;
-            let yieldAmount = this.fields.yield;
-            let tags = this.fields.tags;
-
-            let rawIngredientsJSON = this.fields.ingredients;
-            let rawInstructionJSON = this.fields.instructions;
-
-            // Clean JSON
-
-            let updatedRecipe = {
-                "name": recipeName, 
-                "images": imageList,
-                "time_active": activeTime,
-                "time_total": totalTime,
-                "yield": yieldAmount,
-                "tags": tags,
-                "ingredients": rawIngredientsJSON,
-                "instructions": rawInstructionJSON
-            }
-            console.log(this.fields.instructions);
+                "fc8cf377-6056-476f-9597-6fef05f3c9b5.jpg",
+                "cf29d86b-d7b5-4684-9aa6-1ff5826a86bd.jpg"
+            ];
 
             // Now run request
             axios
-                .put(`${this.services.url_api}/${this.$route.params.id}`, updatedRecipe)
+                .put(`${this.services.url_api}/${this.$route.params.id}`, this.fields)
                 .then(res => {
                     console.log(res);
                 })
                 .catch(err => console.log(err));
+
+            //end 'loading' here
+        },
+        cleanRecipeInputs() {
+            this.fields.name = this.fields.name.trim();
+            this.fields.yield = this.fields.yield.trim();
+            this.fields.time_total = +this.fields.time_total;
+            this.fields.time_active = +this.fields.time_active;
+
+            this.cleanInstructionInputs();
+            this.cleanIngredientInputs();
         },
         enforceNumber(evt) {
             let keyCode = evt.keyCode;
@@ -323,18 +313,18 @@ export default {
         addTag(evt) {
             let tagInputField = this.$refs.tagInput;
             let tagInputText = tagInputField.value.trim();
-            if (!(this.fields.tags.map((tag) => { return tag.toLowerCase() }).includes(tagInputText.toLowerCase()))) {
+            if (!tagInputText.length === 0 && !(this.fields.tags.map((tag) => { return tag.toLowerCase() }).includes(tagInputText.toLowerCase()))) {
                 this.fields.tags.push(tagInputText);
             }
             tagInputField.value = null;
         },
-        showClose(evt) {
+        showTagClose(evt) {
             let closeButtonElement = evt.target.firstElementChild;
             if (closeButtonElement) {
                 closeButtonElement.classList.remove("hide")
             }
         },
-        hideClose(evt) {
+        hideTagClose(evt) {
              let closeButtonElement = evt.target.firstElementChild;
             if (closeButtonElement) {
                 closeButtonElement.classList.add("hide")
@@ -344,7 +334,7 @@ export default {
             this.fields.tags.splice(index, 1);
         },
         // This function is responsible for 'cleaning' the state of the whole ingredients object 
-        cleanIngredientInputs() {
+        async cleanIngredientInputs() {
             let rawIngredientsJSON = this.fields.ingredients;
             for (let ingredientSection of rawIngredientsJSON) {
                 ingredientSection.title = ingredientSection.title.trim();
@@ -444,13 +434,27 @@ export default {
         },
     },
     mounted() {
-        axios
-            .get(`${this.services.url_api}/${this.$route.params.id}`)
-            .then(res => {
-                this.fields = res.data;
-                console.log(this.fields);
-            })
-            .catch(err => console.log(err));
+        // If new recipe, don't try to load data
+        if (this.$route.params.id !== "new") {
+            // Only load data if correct length of id provided
+            if (this.$route.params.id.length === 24) {
+                axios
+                .get(`${this.services.url_api}/${this.$route.params.id}`)
+                .then(res => {
+                    this.fields = res.data;
+                    console.log(this.fields);
+                })
+                .catch(err => {
+                    console.log(err);
+                    this.$router.push('/');
+                })
+            } else {
+                console.error("Invalid recipe id: 24-digit hex required");
+                this.$router.push('/');
+            }
+        } else {
+            this.$route.params.id = null;
+        }
     }
 };
 </script>
