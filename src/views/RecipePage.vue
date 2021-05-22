@@ -2,27 +2,16 @@
     <div class="recipe__page__container">
         <div class="recipe__page__column">
             <div id="section-header">
-                <input class="recipe-title text-fancy element__editable" :disabled="!is_edit_mode" v-model="fields.name" :placeholder="is_edit_mode ? 'Recipe Title' : ''" />
-                <!-- <h1 class="text-fancy">{{ this.fields.name }}</h1> -->
+                <div>
+                    <input class="recipe-title text-fancy element__editable" :disabled="!is_edit_mode" v-model="fields.name" :placeholder="is_edit_mode ? 'Recipe Title' : ''" />
+                    <!-- <h1 class="text-fancy">{{ this.fields.name }}</h1> -->
 
-                <!-- Top Edit Container -->
-                <div class="edit-mode">
-                    <input
-                        type="checkbox"
-                        id="isEditMode"
-                        name="isEditMode"
-                        v-model="is_edit_mode"
-                    />
-                    <v-btn 
-                        x-small
-                        color="primary"
-                        @click="printListState"
-                    >Log List States</v-btn>
-                    <v-btn 
-                        x-small
-                        color="primary"
-                        @click="saveRecipeChanges"
-                    >Save List States</v-btn>
+                    <!-- Top Edit Container -->
+                    <div class="edit__mode__top">
+                        <v-icon class="edit__mode__top--item" @click="printListState">mdi-cog</v-icon>
+                        <v-icon v-if="!is_edit_mode" class="edit__mode__top--item" @click="()=>{this.is_edit_mode=true}">mdi-square-edit-outline</v-icon>
+                        <v-icon v-else class="edit__mode__top--item" @click="cleanAndSaveRecipeChanges">mdi-content-save</v-icon>
+                    </div>
                 </div>
 
                 <!-- Side Edit/Toolkit Container -->
@@ -252,7 +241,7 @@ export default {
             _id: null
         },
         services: services,
-        is_edit_mode: true
+        is_edit_mode: false
     }),
     methods: {
         imgPlaceholder(e) {
@@ -261,7 +250,7 @@ export default {
         printListState() {
             console.log(this.fields);
         },
-        saveRecipeChanges() {
+        cleanAndSaveRecipeChanges() {
             //start 'loading' here
             this.cleanRecipeInputs();
 
@@ -276,16 +265,17 @@ export default {
                 .put(`${this.services.url_api}/${this.$route.params.id}`, this.fields)
                 .then(res => {
                     console.log(res);
+                    //end 'loading' here
+
+                    this.is_edit_mode = false;
                 })
                 .catch(err => console.log(err));
-
-            //end 'loading' here
         },
         cleanRecipeInputs() {
             this.fields.name = this.fields.name.trim();
             this.fields.yield = this.fields.yield.trim();
-            this.fields.time_total = +this.fields.time_total;
-            this.fields.time_active = +this.fields.time_active;
+            this.fields.time_total = this.fields.time_total ? +this.fields.time_total : null;
+            this.fields.time_active = this.fields.time_active ? +this.fields.time_active : null;
 
             this.cleanInstructionInputs();
             this.cleanIngredientInputs();
@@ -334,7 +324,7 @@ export default {
             this.fields.tags.splice(index, 1);
         },
         // This function is responsible for 'cleaning' the state of the whole ingredients object 
-        async cleanIngredientInputs() {
+        cleanIngredientInputs() {
             let rawIngredientsJSON = this.fields.ingredients;
             for (let ingredientSection of rawIngredientsJSON) {
                 ingredientSection.title = ingredientSection.title.trim();
@@ -454,6 +444,7 @@ export default {
             }
         } else {
             this.$route.params.id = null;
+            this.is_edit_mode = true;
         }
     }
 };
@@ -501,14 +492,37 @@ img {
 }
 
 /* Edit Mode Area */
-.edit-mode {
+.edit__mode__top {
     position: absolute;
+    height: 75px;
     right: 0px;
     top: 0px;
+    //border: red solid 1px;
+    //border-radius: 5px 5px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 15px;
+    padding-right: 15px;
 }
-.edit-mode > * {
-    margin-right:25px;
+.edit__mode__top > * {
+    margin: 5px;
 }
+.edit__mode__top--item {
+    color: black;
+    padding: 5px;
+    border-radius: 6px;
+}
+.edit__mode__top--item:hover {
+    background-color: #cccccc;
+}
+.edit__mode__top--item:active {
+    background-color: #dedede;
+}
+.edit__mode__top--item:after { // Remove default ripple
+  opacity: 0 !important;
+}
+
 .edit__mode__tools {
     position: fixed;
     right: 0px;
