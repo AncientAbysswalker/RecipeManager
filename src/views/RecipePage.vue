@@ -1,5 +1,18 @@
 <template>
     <div class="recipe__page__container">
+        <div v-if="this.is_loading" id="loader__wrapper">        
+            <div class="loader__overlay"></div>
+
+            <div class="loader__center__container">
+                <img
+                    alt="Raviole Logo Loading"
+                    src="@/assets/raviole.png"
+                    class="loader__logo pulse"
+                />
+                <p class="loader__text">{{ this.loading_text }}</p>
+            </div>        
+        </div>
+
         <div class="recipe__page__column">
             <div id="section-header">
                 <div>
@@ -236,12 +249,21 @@ export default {
             'yield': "",
             tags: [],
             images: [],
-            ingredients: [],
-            instructions: [],
+            ingredients: [{
+                title: "",
+                ingredients: []
+            }],
+            instructions: [{
+                title: "",
+                type: 0,
+                contents: []
+            }],
             _id: null
         },
         services: services,
-        is_edit_mode: false
+        is_edit_mode: false,
+        loading_text: 'dummy',
+        is_loading: false,
     }),
     methods: {
         imgPlaceholder(e) {
@@ -251,7 +273,8 @@ export default {
             console.log(this.fields);
         },
         cleanAndSaveRecipeChanges() {
-            //start 'loading' here
+            this.is_loading = true;
+            this.loading_text = "Saving Recipe";
             this.cleanRecipeInputs();
 
             //console.log(this.fields.images);
@@ -260,16 +283,30 @@ export default {
                 "cf29d86b-d7b5-4684-9aa6-1ff5826a86bd.jpg"
             ];
 
-            // Now run request
-            axios
+            // If recipe exists [PUT] to DB, else [PUSH] to DB
+            if (this.fields._id !== null) {
+                axios
                 .put(`${this.services.url_api}/${this.$route.params.id}`, this.fields)
                 .then(res => {
                     console.log(res);
                     //end 'loading' here
 
                     this.is_edit_mode = false;
+                    this.is_loading = false;
                 })
                 .catch(err => console.log(err));
+            } else {
+                axios
+                .post(`${this.services.url_api}/`, this.fields)
+                .then(res => {
+                    console.log(res);
+                    //end 'loading' here
+
+                    this.is_edit_mode = false;
+                    this.is_loading = false;
+                })
+                .catch(err => console.log(err));
+            }
         },
         cleanRecipeInputs() {
             this.fields.name = this.fields.name.trim();
@@ -428,10 +465,13 @@ export default {
         if (this.$route.params.id !== "new") {
             // Only load data if correct length of id provided
             if (this.$route.params.id.length === 24) {
+                this.is_loading = true;
+                this.loading_text = "Loading Recipe";
                 axios
                 .get(`${this.services.url_api}/${this.$route.params.id}`)
                 .then(res => {
                     this.fields = res.data;
+                    this.is_loading = false;
                     console.log(this.fields);
                 })
                 .catch(err => {
@@ -680,5 +720,126 @@ img {
     right: -0.4em;
     top: -0.4em;
     z-index: 1;
+}
+
+
+#loader__wrapper {
+    // display: flex;
+    // flex-direction: column;
+    // justify-content: center;
+    // align-items: center;
+}
+
+#loader__wrapper .loader__overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #cccccccc;
+    z-index: 100;
+    border: red solid 1px;
+}
+
+.loader__center__container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    /* bring your own prefixes */
+    transform: translate(-50%, -50%);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 101 !important;
+}
+
+.loader__logo {
+    width: 100px;
+    height: 100px;
+}
+
+// Loading pulse animation
+.pulse {
+  animation: pulse 3s infinite;
+  margin: 0 auto;
+  display: table;
+  margin-top: 50px;
+  animation-direction: alternate;
+  -webkit-animation-name: pulse;
+  animation-name: pulse;
+}
+@-webkit-keyframes pulse {
+  0% {
+    -webkit-transform: scale(1);
+  }
+  50% {
+    -webkit-transform: scale(1.1);
+  }
+  100% {
+    -webkit-transform: scale(1);
+  }
+}
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.loader__text {
+    font-size: 24px;
+    padding: 10px;
+}
+ 
+#loader {
+    z-index: 1001; /* anything higher than z-index: 1000 of .loader__overlay */
+}
+h1 {
+    color: #EEEEEE;
+}
+#content {
+    margin: 0 auto;
+    padding-bottom: 50px;
+    width: 80%;
+    max-width: 978px;
+}
+.loaded #loader__wrapper .loader__overlay.section-left {
+    -webkit-transform: translateX(-100%);  /* Chrome, Opera 15+, Safari 3.1+ */
+    -ms-transform: translateX(-100%);  /* IE 9 */
+    transform: translateX(-100%);  /* Firefox 16+, IE 10+, Opera */
+}
+ 
+.loaded #loader__wrapper .loader__overlay.section-right {
+    -webkit-transform: translateX(100%);  /* Chrome, Opera 15+, Safari 3.1+ */
+    -ms-transform: translateX(100%);  /* IE 9 */
+    transform: translateX(100%);  /* Firefox 16+, IE 10+, Opera */
+}
+.loaded #loader {
+    opacity: 1;
+}
+.loaded #loader__wrapper {
+    visibility: hidden;
+}
+.loaded #loader__wrapper .loader__overlay.section-right,
+.loaded #loader__wrapper .loader__overlay.section-left {
+ 
+    -webkit-transition: all 0.7s 0.3s cubic-bezier(0.645, 0.045, 0.355, 1.000);
+                transition: all 0.7s 0.3s cubic-bezier(0.645, 0.045, 0.355, 1.000);
+}
+.loaded #loader__wrapper {
+        -webkit-transform: translateY(-100%);
+            -ms-transform: translateY(-100%);
+                transform: translateY(-100%);
+ 
+        -webkit-transition: all 0.3s 1s ease-out;
+                transition: all 0.3s 1s ease-out;
 }
 </style>
