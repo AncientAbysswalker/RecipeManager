@@ -1,25 +1,113 @@
 <template>
     <div class="recipe__page__container">
+        <!-- Loader Overlay -->
         <div v-if="this.is_loading" id="loader__wrapper">        
             <div class="loader__overlay"></div>
 
             <div class="loader__center__container">
-                <img
-                    alt="Raviole Logo Loading"
-                    src="@/assets/raviole.png"
-                    class="loader__logo pulse"
-                />
+                <div class="wobble">
+                    <img
+                        alt="Raviole Logo Loading"
+                        src="@/assets/raviole.png"
+                        class="loader__logo pulse"
+                    />
+                </div>
                 <p class="loader__text">{{ this.loading_text }}</p>
             </div>        
         </div>
 
+        <!-- Side Edit/Toolkit Container -->
+        <div class="edit__mode__tools">
+            <v-tooltip left>
+                <template v-slot:activator="{ on, attrs }">
+                    <draggable
+                        class="dragArea"
+                        dragClass="new__element__drag--notes"
+                        ghostClass="ghosty"
+                        :animation="150"
+                        :list="[{text: '', type: InstructionTypeEnum.NOTES}]"
+                        :group="{ name: 'instruction-element', pull: 'clone', put: false }"
+                    >
+                        <img class="new__drag--paragraph" src="@/assets/paragraph.png" v-bind="attrs" v-on="on">
+                    </draggable>
+                </template>
+                <span>Paragraph</span>
+            </v-tooltip>
+            <hr>
+            <v-tooltip left>
+                <template v-slot:activator="{ on, attrs }">
+                    <draggable
+                        class="dragArea"
+                        dragClass="new__element__drag--notes"
+                        ghostClass="ghosty"
+                        :animation="150"
+                        :list="[{steps: [''], type: InstructionTypeEnum.LIST_ORDERED}]"
+                        :group="{ name: 'instruction-element', pull: 'clone', put: false }"
+                    >
+                        <img class="new__drag--paragraph" src="@/assets/ordered_list.png" v-bind="attrs" v-on="on">
+                    </draggable>
+                </template>
+                <span>Numbered List</span>
+            </v-tooltip>
+            <hr>
+            <v-tooltip left>
+                <template v-slot:activator="{ on, attrs }">
+                    <draggable
+                        class="dragArea"
+                        dragClass="new__element__drag--notes"
+                        ghostClass="ghosty"
+                        :animation="150"
+                        :list="[{steps: [''], type: InstructionTypeEnum.LIST_UNORDERED}]"
+                        :group="{ name: 'instruction-element', pull: 'clone', put: false }"
+                    >
+                        <img class="new__drag--paragraph" src="@/assets/unordered_list.png" v-bind="attrs" v-on="on">
+                    </draggable>
+                </template>
+                <span>Bullet List</span>
+            </v-tooltip>
+            <hr>
+            <v-tooltip left>
+                <template v-slot:activator="{ on, attrs }">
+                    <draggable
+                        class="dragArea"
+                        dragClass="new__element__drag--notes"
+                        ghostClass="ghosty"
+                        :animation="150"
+                        :list="[{contents: [], title: '', type: InstructionTypeEnum.CONTAINER}]"
+                        :group="{ name: 'instruction-element', pull: 'clone', put: false }"
+                    >
+                        <img class="new__drag--paragraph instruction__container" src="@/assets/subsection.png" v-bind="attrs" v-on="on">
+                    </draggable>
+                </template>
+                <span>Sub-Section</span>
+            </v-tooltip>
+            <hr>
+            <v-tooltip left>
+                <template v-slot:activator="{ on, attrs }">
+                    <draggable
+                        class="dragArea"
+                        dragClass="new__element__drag--notes"
+                        ghostClass="ghosty"
+                        :animation="150"
+                        :list="[{contents: [], title: '', type: InstructionTypeEnum.CONTAINER}]"
+                        :group="{ name: 'instruction-card', pull: 'clone', put: false }"
+                    >
+                        <img class="new__drag--paragraph instruction__container" src="@/assets/card.png" v-bind="attrs" v-on="on">
+                    </draggable>
+                </template>
+                <span>Instruction Card</span>
+            </v-tooltip>
+        </div>
+
+        <!-- Central RecipePage Container -->
         <div class="recipe__page__column">
             <div id="section-header">
-                <div>
+                <!-- Title Block -->
+                <div class="anchor">
                     <input class="recipe-title text-fancy element__editable" :disabled="!is_edit_mode" v-model="fields.name" :placeholder="is_edit_mode ? 'Recipe Title' : ''" />
                     <!-- <h1 class="text-fancy">{{ this.fields.name }}</h1> -->
 
-                    <!-- Top Edit Container -->
+                    <!-- Top Edit-Control Container -->
                     <div class="edit__mode__top">
                         <v-icon class="edit__mode__top--item" @click="printListState">mdi-cog</v-icon>
                         <v-icon v-if="!is_edit_mode" class="edit__mode__top--item" @click="()=>{this.is_edit_mode=true}">mdi-square-edit-outline</v-icon>
@@ -27,112 +115,54 @@
                     </div>
                 </div>
 
-                <!-- Side Edit/Toolkit Container -->
-                <div class="edit__mode__tools">
-                    <v-tooltip left>
-                        <template v-slot:activator="{ on, attrs }">
-                            <draggable
-                                class="dragArea"
-                                dragClass="new__element__drag--notes"
-                                ghostClass="ghosty"
-                                :animation="150"
-                                :list="[{text: '', type: 1}]"
-                                :group="{ name: 'instruction-element', pull: 'clone', put: false }"
-                            >
-                                <img class="new__drag--paragraph" src="@/assets/paragraph.png" v-bind="attrs" v-on="on">
-                            </draggable>
-                        </template>
-                        <span>Paragraph</span>
-                    </v-tooltip>
-                    <hr>
-                    <v-tooltip left>
-                        <template v-slot:activator="{ on, attrs }">
-                            <draggable
-                                class="dragArea"
-                                dragClass="new__element__drag--notes"
-                                ghostClass="ghosty"
-                                :animation="150"
-                                :list="[{steps: [''], type: 2}]"
-                                :group="{ name: 'instruction-element', pull: 'clone', put: false }"
-                            >
-                                <img class="new__drag--paragraph" src="@/assets/ordered_list.png" v-bind="attrs" v-on="on">
-                            </draggable>
-                        </template>
-                        <span>Numbered List</span>
-                    </v-tooltip>
-                    <hr>
-                    <v-tooltip left>
-                        <template v-slot:activator="{ on, attrs }">
-                            <draggable
-                                class="dragArea"
-                                dragClass="new__element__drag--notes"
-                                ghostClass="ghosty"
-                                :animation="150"
-                                :list="[{steps: [''], type: 3}]"
-                                :group="{ name: 'instruction-element', pull: 'clone', put: false }"
-                            >
-                                <img class="new__drag--paragraph" src="@/assets/unordered_list.png" v-bind="attrs" v-on="on">
-                            </draggable>
-                        </template>
-                        <span>Bullet List</span>
-                    </v-tooltip>
-                    <hr>
-                    <v-tooltip left>
-                        <template v-slot:activator="{ on, attrs }">
-                            <draggable
-                                class="dragArea"
-                                dragClass="new__element__drag--notes"
-                                ghostClass="ghosty"
-                                :animation="150"
-                                :list="[{contents: [], title: '', type: 0}]"
-                                :group="{ name: 'instruction-element', pull: 'clone', put: false }"
-                            >
-                                <img class="new__drag--paragraph instruction__container" src="@/assets/subsection.png" v-bind="attrs" v-on="on">
-                            </draggable>
-                        </template>
-                        <span>Sub-Section</span>
-                    </v-tooltip>
-                    <hr>
-                    <v-tooltip left>
-                        <template v-slot:activator="{ on, attrs }">
-                            <draggable
-                                class="dragArea"
-                                dragClass="new__element__drag--notes"
-                                ghostClass="ghosty"
-                                :animation="150"
-                                :list="[{contents: [], title: '', type: 0}]"
-                                :group="{ name: 'instruction-card', pull: 'clone', put: false }"
-                            >
-                                <img class="new__drag--paragraph instruction__container" src="@/assets/card.png" v-bind="attrs" v-on="on">
-                            </draggable>
-                        </template>
-                        <span>Instruction Card</span>
-                    </v-tooltip>
+                <!-- Carousel -->
+                <div class="anchor" id="float-container">
+                    <v-carousel class="caru" :show-arrows="false" v-model="currentCarouselIndex">
+                        <v-carousel-item
+                            v-if="
+                                this.fields.images &&
+                                    this.fields.images.length === 0
+                            "
+                            :src="
+                                require(`@/static/card_default.png`) ||
+                                    require(`@/static/card_loading.png`)
+                            "
+                            @error="imgPlaceholder"
+                        ></v-carousel-item>
+                        <v-carousel-item
+                            v-else
+                            v-for="(image, index) in this.loaded_images"
+                            :key="index"
+                            :src="(image.type===0) ? (
+                                `${services.url_cdn}/${image.hostedSource}` ||
+                                    require(`@/static/card_loading.png`)) : image.localSource
+                            "
+                            @error="imgPlaceholder"
+                        ></v-carousel-item>
+                    </v-carousel>
+                    <div class="left-carousel-tools">
+                        <button @click="shiftCarouselItemPrev" class="buttonbutt">&lt;</button>
+                        <button @click="shiftCarouselItemNext" class="buttonbutt">&gt;</button>
+                    </div>
+                    <div class="right-carousel-tools">
+                        <v-icon class="buttonbutt" @click="removeCarouselItem">mdi-trash-can-outline</v-icon>
+                        <v-icon class="buttonbutt" @click="$refs.fileInput.click()">mdi-file-upload-outline</v-icon>
+                        <button @click="removeCarouselItem" class="buttonbutt">-</button>
+                        <button @click="$refs.fileInput.click()" class="buttonbutt">+</button>
+                        <input style="display: none" ref="fileInput" type="file" @change="fileSelected" enctype="multipart/form-data">
+                    </div>
                 </div>
 
                 <v-carousel class="caru" :show-arrows="false">
                     <v-carousel-item
-                        v-if="
-                            this.fields.images &&
-                                this.fields.images.length === 0
-                        "
-                        :src="
-                            require(`@/static/card_default.png`) ||
-                                require(`@/static/card_loading.png`)
-                        "
-                        @error="imgPlaceholder"
-                    ></v-carousel-item>
-                    <v-carousel-item
-                        v-else
-                        v-for="(image, index) in this.fields.images"
+                        v-for="(image, index) in this.newimages"
                         :key="index"
-                        :src="
-                            `${services.url_cdn}/${image}` ||
-                                require(`@/static/card_loading.png`)
-                        "
-                        @error="imgPlaceholder"
+                        :src="image"
                     ></v-carousel-item>
                 </v-carousel>
+                <!-- <button @click="$refs.fileInput.click()" class="btn-right">Select an image</button> -->
+                <!-- <button @click="uploadImageTest" class="btn-right">Upload?</button> -->
+                <!-- <input style="display: none" ref="fileInput" type="file" @change="fileSelected" enctype="multipart/form-data"> -->
             </div>
 
             <!-- Production - not split into a separate component because it is simple -->
@@ -201,20 +231,9 @@
                 </draggable>
             </div>
 
-            <!-- <div
-        v-for="(section, index) in this.fields.instructions"
-        :key="`section${index}`"
-      >
-        <h5>{{ section.title }}</h5>
-        <ol>
-          <li v-for="(step, index) in section.steps" :key="`step${index}`">
-            {{ step }}
-          </li>
-        </ol>
-      </div>-->
             <br />
             <br />
-            <br />
+            <hr>
             <p>This is the id: {{ $route.params.id }}</p>
         </div>
     </div>
@@ -230,7 +249,16 @@ const services = require('@/helpers/services');
 import InstructionCard from '../components/RecipePage/instruction-elements/InstructionCard';
 import IngredientCard from '../components/RecipePage/ingredient-elements/IngredientCard';
 import DeleteTagButton from '../components/RecipePage/common-elements/DeleteTagButton';
+import { InstructionTypeEnum } from '../components/RecipePage/instruction-elements/InstructionConstants';
 //import { Carousel, Slide } from "vue-carousel";
+
+function array_move(arr, old_index, new_index) {
+    if (new_index >= arr.length || old_index >= arr.length || new_index < 0 || old_index < 0) {
+        return;
+    }
+    arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
+    return arr; // for testing
+}
 
 export default {
     name: 'RecipeCard',
@@ -242,6 +270,7 @@ export default {
         DeleteTagButton
     },
     data: () => ({
+        InstructionTypeEnum: InstructionTypeEnum,
         fields: {
             name: "",
             time_active: null,
@@ -255,17 +284,69 @@ export default {
             }],
             instructions: [{
                 title: "",
-                type: 0,
+                type: InstructionTypeEnum.CONTAINER,
                 contents: []
             }],
             _id: null
         },
+        currentCarouselIndex: 0,
+        loaded_images: [],
+        newimages: [],
+        newimagesorigin: [],
+        selectedFile: null,
+        images: [],
+        image_fields: ['id', 'name'],
+        total_images: 1,
         services: services,
         is_edit_mode: false,
         loading_text: 'dummy',
         is_loading: false,
     }),
     methods: {
+        shiftCarouselItemNext() {
+            array_move(this.loaded_images, this.currentCarouselIndex, this.currentCarouselIndex + 1);
+            if (this.currentCarouselIndex + 1 < this.loaded_images.length) {
+                this.currentCarouselIndex++;
+            }
+        },
+        removeCarouselItem() {
+            this.loaded_images.splice(this.currentCarouselIndex, 1);
+            if (this.currentCarouselIndex + 1 < this.loaded_images.length) {
+                this.currentCarouselIndex--;
+            }
+        },
+        shiftCarouselItemPrev() {
+            array_move(this.loaded_images, this.currentCarouselIndex, this.currentCarouselIndex - 1);
+            if (this.currentCarouselIndex > 0) {
+                this.currentCarouselIndex--;
+            }
+        },
+        fileSelected(evt) {
+            evt.preventDefault()
+            console.log(evt);
+            var file = evt.target.files[0]
+            console.log(file)
+            var url = URL.createObjectURL(file);
+            this.newimages.push(url);
+            this.loaded_images.push({type: 1, localSource: url});
+            this.newimagesorigin.push(file);
+        },
+        onFileChange(e) {
+            const file = e.target.files[0];
+            this.url = URL.createObjectURL(file);
+        },
+        uploadImageTest() {
+            //this.newimages[0].name = 'profile_pic';
+            var formData1 = new FormData()
+            console.log(this.newimagesorigin[0])
+            formData1.append("profile_pic", this.newimagesorigin[0]);
+            axios
+            .post(`${this.services.url_cdn}/upload`, formData1)
+            .then(res => {
+                console.log(res);
+            })
+            .catch(err => console.log(err));
+        },
         imgPlaceholder(e) {
             e.target.src = require(`@/static/card_error.png`);
         },
@@ -471,6 +552,7 @@ export default {
                 .get(`${this.services.url_api}/${this.$route.params.id}`)
                 .then(res => {
                     this.fields = res.data;
+                    this.loaded_images = this.fields.images.map((src) => ({ type: 0, hostedSource: src }))
                     this.is_loading = false;
                     console.log(this.fields);
                 })
@@ -510,7 +592,7 @@ export default {
 }
 
 /* To help position the edit mode button(s) */
-#section-header {
+.anchor {
     position: relative;
 }
 
@@ -525,7 +607,7 @@ export default {
     font-weight: 100;
 }
 .caru {
-    border: red solid 1px;
+    //border: red solid 1px;
 }
 img {
     width: 500px;
@@ -794,6 +876,29 @@ img {
   }
 }
 
+// Loading wobble animation
+.wobble {
+    animation: wobble 5s infinite alternate ease-in-out;
+    -webkit-animation-name: wobble;
+    animation-name: wobble;
+}
+@-webkit-keyframes wobble {
+  0% {
+    -webkit-transform: rotate(-5deg);
+  }
+  100% {
+    -webkit-transform: rotate(5deg);
+  }
+}
+@keyframes wobble {
+  0% {
+    transform: rotate(-5deg);
+  }
+  100% {
+    transform: rotate(5deg);
+  }
+}
+
 .loader__text {
     font-size: 24px;
     padding: 10px;
@@ -841,5 +946,47 @@ h1 {
  
         -webkit-transition: all 0.3s 1s ease-out;
                 transition: all 0.3s 1s ease-out;
+}
+
+.left-carousel-tools {
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    height: 30px;
+    width: 100px;
+    bottom: 50px;
+    background-color: #0000004E;
+}
+.right-carousel-tools {
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    height: 30px;
+    width: 100px;
+    bottom: 50px;
+    right: 0px;
+    background-color: #0000004E;
+}
+.buttonbutt {
+    margin: 5px;
+    width: 25px;
+    height: 25px;
+    background-color: #888882;
+    border-radius: 5px;
+}
+
+
+.float-left {
+    width: 25px;
+    height: 25px;
+    background-color: white;
+    border: 1px black solid;
+    position: absolute;
+    top: 0px;
+    left: 10px; 
+}
+.float-right {
+    display: absolute;
+    top: 50px;
 }
 </style>

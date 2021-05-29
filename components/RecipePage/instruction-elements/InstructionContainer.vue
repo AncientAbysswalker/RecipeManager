@@ -23,23 +23,23 @@
         >
             <template v-for="(element, index) in elementData.contents">
                 <InstructionContainer
-                    v-if="element.type === 0"
+                    v-if="element.type === InstructionTypeEnum.CONTAINER"
                     :key="index + '-' + element.type"
                     :elementData="element"
                     :class="isEditMode && 'handle__element--drag'"
                     :isEditMode="isEditMode"
                 ></InstructionContainer>
-                <div class="element__draggable__container" v-else-if="element.type === 1" :key="index + '-' + element.type">
+                <div class="element__draggable__container" v-else-if="element.type === InstructionTypeEnum.NOTES" :key="index + '-' + element.type">
                     <div v-if="isEditMode" class="handle__component handle__element--drag"></div>
 
                     <NotesElement :elementData="element" :isEditMode="isEditMode" />
                 </div>
-                <div class="element__draggable__container" v-else-if="element.type === 2" :key="index + '-' + element.type">
+                <div class="element__draggable__container" v-else-if="element.type === InstructionTypeEnum.LIST_ORDERED" :key="index + '-' + element.type">
                     <div v-if="isEditMode" class="handle__component handle__element--drag"></div>
 
                     <OrderedListElement :elementData="element" :isEditMode="isEditMode" />
                 </div>
-                <div class="element__draggable__container" v-else-if="element.type === 3" :key="index + '-' + element.type">
+                <div class="element__draggable__container" v-else-if="element.type === InstructionTypeEnum.LIST_UNORDERED" :key="index + '-' + element.type">
                     <div v-if="isEditMode" class="handle__component handle__element--drag"></div>
 
                     <UnorderedListElement :elementData="element" :isEditMode="isEditMode" />
@@ -67,6 +67,7 @@ import draggable from 'vuedraggable';
 import NotesElement from './NotesElement';
 import OrderedListElement from './OrderedListElement';
 import UnorderedListElement from './UnorderedListElement';
+import { InstructionTypeEnum } from './InstructionConstants';
 
 export default {
     name: 'InstructionContainer',
@@ -78,6 +79,9 @@ export default {
             default: false
         }
     },
+    data: () => ({
+        InstructionTypeEnum: InstructionTypeEnum
+    }),
     components: {
         draggable,
         NotesElement,
