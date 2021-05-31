@@ -120,8 +120,8 @@
                     <v-carousel class="caru" :show-arrows="false" v-model="currentCarouselIndex">
                         <v-carousel-item
                             v-if="
-                                this.fields.images &&
-                                    this.fields.images.length === 0
+                                this.loaded_images &&
+                                    this.loaded_images === 0
                             "
                             :src="
                                 require(`@/static/card_default.png`) ||
@@ -133,36 +133,26 @@
                             v-else
                             v-for="(image, index) in this.loaded_images"
                             :key="index"
-                            :src="(image.type===0) ? (
+                            :src="(image.uploadState===ImageStateEnum.HOSTED) ? (
                                 `${services.url_cdn}/${image.hostedSource}` ||
                                     require(`@/static/card_loading.png`)) : image.localSource
                             "
                             @error="imgPlaceholder"
                         ></v-carousel-item>
                     </v-carousel>
-                    <div class="left-carousel-tools">
-                        <button @click="shiftCarouselItemPrev" class="buttonbutt">&lt;</button>
-                        <button @click="shiftCarouselItemNext" class="buttonbutt">&gt;</button>
+                    <div v-if="is_edit_mode" class="carousel__toolbar--left">
+                        <v-icon class="carousel__button" @click="shiftCarouselItemPrev">mdi-chevron-double-left</v-icon>
+                        <v-icon class="carousel__button" @click="shiftCarouselItemNext">mdi-chevron-double-right</v-icon>
                     </div>
-                    <div class="right-carousel-tools">
-                        <v-icon class="buttonbutt" @click="removeCarouselItem">mdi-trash-can-outline</v-icon>
-                        <v-icon class="buttonbutt" @click="$refs.fileInput.click()">mdi-file-upload-outline</v-icon>
-                        <button @click="removeCarouselItem" class="buttonbutt">-</button>
-                        <button @click="$refs.fileInput.click()" class="buttonbutt">+</button>
+                    <div v-if="is_edit_mode" class="carousel__toolbar--right">
+                        <v-icon class="carousel__button" @click="removeCarouselItem">mdi-trash-can-outline</v-icon>
+                        <v-icon class="carousel__button" @click="bigTest">mdi-autorenew</v-icon>
+                        <v-icon class="carousel__button" @click="$refs.fileInput.click()">mdi-file-upload-outline</v-icon>
+                        <!--<button @click="removeCarouselItem" class="carousel__button">-</button>
+                        <button @click="$refs.fileInput.click()" class="carousel__button">+</button>-->
                         <input style="display: none" ref="fileInput" type="file" @change="fileSelected" enctype="multipart/form-data">
                     </div>
                 </div>
-
-                <v-carousel class="caru" :show-arrows="false">
-                    <v-carousel-item
-                        v-for="(image, index) in this.newimages"
-                        :key="index"
-                        :src="image"
-                    ></v-carousel-item>
-                </v-carousel>
-                <!-- <button @click="$refs.fileInput.click()" class="btn-right">Select an image</button> -->
-                <!-- <button @click="uploadImageTest" class="btn-right">Upload?</button> -->
-                <!-- <input style="display: none" ref="fileInput" type="file" @change="fileSelected" enctype="multipart/form-data"> -->
             </div>
 
             <!-- Production - not split into a separate component because it is simple -->
@@ -269,8 +259,16 @@ export default {
         draggable,
         DeleteTagButton
     },
+    created() {
+        this.ImageStateEnum = {
+            HOSTED: 0,
+            LOCAL: 1,
+            LOCAL_BUT_UPLOADED: 2
+        }
+    },
     data: () => ({
         InstructionTypeEnum: InstructionTypeEnum,
+        
         fields: {
             name: "",
             time_active: null,
@@ -289,7 +287,7 @@ export default {
             }],
             _id: null
         },
-        currentCarouselIndex: 0,
+        currentCarouselIndex: '0',
         loaded_images: [],
         newimages: [],
         newimagesorigin: [],
@@ -328,66 +326,94 @@ export default {
             console.log(file)
             var url = URL.createObjectURL(file);
             this.newimages.push(url);
-            this.loaded_images.push({type: 1, localSource: url});
+            this.loaded_images.push({uploadState: this.ImageStateEnum.LOCAL, localSource: url, rawImageFile: file});
             this.newimagesorigin.push(file);
         },
         onFileChange(e) {
             const file = e.target.files[0];
             this.url = URL.createObjectURL(file);
         },
-        uploadImageTest() {
-            //this.newimages[0].name = 'profile_pic';
-            var formData1 = new FormData()
-            console.log(this.newimagesorigin[0])
-            formData1.append("profile_pic", this.newimagesorigin[0]);
-            axios
-            .post(`${this.services.url_cdn}/upload`, formData1)
-            .then(res => {
-                console.log(res);
+        bigTest() {
+            this.uploadImagesToServer().then(()=>{
+                console.log(9);
             })
-            .catch(err => console.log(err));
+        },
+        uploadImagesToServer() {
+            // First determine what might need uploading
+            let listOfIndices = [];
+            let formDataToPost = new FormData();
+            this.loaded_images.forEach((image, index) => {
+                if (image.uploadState === this.ImageStateEnum.LOCAL) {
+                    listOfIndices.push(index);
+                    formDataToPost.append("images", image.rawImageFile);
+                }
+            });
+            
+            // Return a promise of when we are done uploading (or a resolution if nothing to upload)
+            const promisedReturn = (listOfIndices.length > 0) ? axiosImagePost(this) : Promise.resolve();
+
+            // The axios post promise for the image array
+            function axiosImagePost(pageThis) {
+                return axios
+                .post(`${pageThis.services.url_cdn}/upload`, formDataToPost)
+                .then(res => {
+                    res.data.hostedSources.forEach((hostedSource, index) => {
+                        let indexToUpdate = listOfIndices[index];
+                        pageThis.loaded_images[indexToUpdate].uploadState = pageThis.ImageStateEnum.LOCAL_BUT_UPLOADED;
+                        pageThis.loaded_images[indexToUpdate].hostedSource = hostedSource;
+                    })
+                })
+                .catch(err => console.log(err));
+            }
+
+            return promisedReturn;
         },
         imgPlaceholder(e) {
             e.target.src = require(`@/static/card_error.png`);
         },
         printListState() {
+            console.log(this.currentCarouselIndex);
             console.log(this.fields);
         },
         cleanAndSaveRecipeChanges() {
             this.is_loading = true;
-            this.loading_text = "Saving Recipe";
-            this.cleanRecipeInputs();
+            this.loading_text = "Uploading Images";//this.loading_text = "Saving Recipe";
 
-            //console.log(this.fields.images);
-            let imageList = [
-                "fc8cf377-6056-476f-9597-6fef05f3c9b5.jpg",
-                "cf29d86b-d7b5-4684-9aa6-1ff5826a86bd.jpg"
-            ];
+            this.uploadImagesToServer().then(() => {
+                // Upate overlay text
+                this.loading_text = "Saving Recipe";
 
-            // If recipe exists [PUT] to DB, else [PUSH] to DB
-            if (this.fields._id !== null) {
-                axios
-                .put(`${this.services.url_api}/${this.$route.params.id}`, this.fields)
-                .then(res => {
-                    console.log(res);
-                    //end 'loading' here
+                // Clean recipe data
+                this.cleanRecipeInputs();
 
-                    this.is_edit_mode = false;
-                    this.is_loading = false;
-                })
-                .catch(err => console.log(err));
-            } else {
-                axios
-                .post(`${this.services.url_api}/`, this.fields)
-                .then(res => {
-                    console.log(res);
-                    //end 'loading' here
+                // Update hosted image list
+                this.fields.images = this.loaded_images.map(image => image.hostedSource);
 
-                    this.is_edit_mode = false;
-                    this.is_loading = false;
-                })
-                .catch(err => console.log(err));
-            }
+                // If recipe exists [PUT] to DB, else [PUSH] to DB
+                if (this.fields._id !== null) {
+                    axios
+                    .put(`${this.services.url_api}/${this.$route.params.id}`, this.fields)
+                    .then(res => {
+                        console.log(res);
+                        //end 'loading' here
+
+                        this.is_edit_mode = false;
+                        this.is_loading = false;
+                    })
+                    .catch(err => console.log(err));
+                } else {
+                    axios
+                    .post(`${this.services.url_api}/`, this.fields)
+                    .then(res => {
+                        console.log(res);
+                        //end 'loading' here
+
+                        this.is_edit_mode = false;
+                        this.is_loading = false;
+                    })
+                    .catch(err => console.log(err));
+                }
+            });
         },
         cleanRecipeInputs() {
             this.fields.name = this.fields.name.trim();
@@ -552,7 +578,7 @@ export default {
                 .get(`${this.services.url_api}/${this.$route.params.id}`)
                 .then(res => {
                     this.fields = res.data;
-                    this.loaded_images = this.fields.images.map((src) => ({ type: 0, hostedSource: src }))
+                    this.loaded_images = this.fields.images.map((src) => ({ uploadState: this.ImageStateEnum.HOSTED, hostedSource: src }))
                     this.is_loading = false;
                     console.log(this.fields);
                 })
@@ -948,31 +974,36 @@ h1 {
                 transition: all 0.3s 1s ease-out;
 }
 
-.left-carousel-tools {
+.carousel__toolbar--left {
     position: absolute;
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    height: 30px;
-    width: 100px;
+    height: 55px;
+    width: 125px;
     bottom: 50px;
     background-color: #0000004E;
+    border-radius: 0 12px 0 0;
 }
-.right-carousel-tools {
+.carousel__toolbar--right {
     position: absolute;
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    height: 30px;
-    width: 100px;
+    height: 55px;
+    width: 125px;
     bottom: 50px;
     right: 0px;
     background-color: #0000004E;
+    border-radius: 12px 0 0 0;
 }
-.buttonbutt {
-    margin: 5px;
-    width: 25px;
-    height: 25px;
+.carousel__button {
+    margin: 10px;
+    width: 35px;
+    height: 35px;
     background-color: #888882;
     border-radius: 5px;
+    color: black;
 }
 
 
