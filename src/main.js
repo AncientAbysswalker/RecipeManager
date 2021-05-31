@@ -7,7 +7,7 @@ import vuetify from './plugins/vuetify';
 import TextareaAutosize from 'vue-textarea-autosize';
 Vue.use(TextareaAutosize);
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
 
 new Vue({
   router,
