@@ -17,7 +17,7 @@
         </div>
 
         <!-- Side Edit/Toolkit Container -->
-        <div class="edit__mode__tools">
+        <div class="edit__mode__tools" v-if="is_edit_mode">
             <v-tooltip left>
                 <template v-slot:activator="{ on, attrs }">
                     <draggable
@@ -109,9 +109,9 @@
 
                     <!-- Top Edit-Control Container -->
                     <div class="edit__mode__top">
-                        <v-icon class="edit__mode__top--item" @click="printListState">mdi-cog</v-icon>
-                        <v-icon v-if="!is_edit_mode" class="edit__mode__top--item" @click="()=>{this.is_edit_mode=true}">mdi-square-edit-outline</v-icon>
-                        <v-icon v-else class="edit__mode__top--item" @click="cleanAndSaveRecipeChanges">mdi-content-save</v-icon>
+                        <v-icon class="edit__mode__top--item button__no__ripple" @click="printListState">mdi-cog</v-icon>
+                        <v-icon v-if="!is_edit_mode" class="edit__mode__top--item button__no__ripple" @click="()=>{this.is_edit_mode=true}">mdi-square-edit-outline</v-icon>
+                        <v-icon v-else class="edit__mode__top--item button__no__ripple" @click="cleanAndSaveRecipeChanges">mdi-content-save</v-icon>
                     </div>
                 </div>
 
@@ -141,15 +141,12 @@
                         ></v-carousel-item>
                     </v-carousel>
                     <div v-if="is_edit_mode" class="carousel__toolbar--left">
-                        <v-icon class="carousel__button" @click="shiftCarouselItemPrev">mdi-chevron-double-left</v-icon>
-                        <v-icon class="carousel__button" @click="shiftCarouselItemNext">mdi-chevron-double-right</v-icon>
+                        <v-icon class="carousel__button button__no__ripple" @click="shiftCarouselItemPrev">mdi-chevron-double-left</v-icon>
+                        <v-icon class="carousel__button button__no__ripple" @click="shiftCarouselItemNext">mdi-chevron-double-right</v-icon>
                     </div>
                     <div v-if="is_edit_mode" class="carousel__toolbar--right">
-                        <v-icon class="carousel__button" @click="removeCarouselItem">mdi-trash-can-outline</v-icon>
-                        <v-icon class="carousel__button" @click="bigTest">mdi-autorenew</v-icon>
-                        <v-icon class="carousel__button" @click="$refs.fileInput.click()">mdi-file-upload-outline</v-icon>
-                        <!--<button @click="removeCarouselItem" class="carousel__button">-</button>
-                        <button @click="$refs.fileInput.click()" class="carousel__button">+</button>-->
+                        <v-icon class="carousel__button button__no__ripple" @click="removeCarouselItem">mdi-trash-can-outline</v-icon>
+                        <v-icon class="carousel__button button__no__ripple" @click="$refs.fileInput.click()">mdi-file-upload-outline</v-icon>
                         <input style="display: none" ref="fileInput" type="file" @change="fileSelected" enctype="multipart/form-data">
                     </div>
                 </div>
@@ -447,7 +444,7 @@ export default {
         addTag(evt) {
             let tagInputField = this.$refs.tagInput;
             let tagInputText = tagInputField.value.trim();
-            if (!tagInputText.length === 0 && !(this.fields.tags.map((tag) => { return tag.toLowerCase() }).includes(tagInputText.toLowerCase()))) {
+            if (tagInputText.length !== 0 && !(this.fields.tags.map((tag) => { return tag.toLowerCase() }).includes(tagInputText.toLowerCase()))) {
                 this.fields.tags.push(tagInputText);
             }
             tagInputField.value = null;
@@ -667,7 +664,7 @@ img {
 .edit__mode__top--item:active {
     background-color: #dedede;
 }
-.edit__mode__top--item:after { // Remove default ripple
+.button__no__ripple:after { // Remove default ripple
   opacity: 0 !important;
 }
 
@@ -805,7 +802,7 @@ img {
     @extend .element__editable;    
     caret-color: black;
 }
-.element__editable--dark:focus { /* When activaly editing */
+.element__editable--dark:focus { /* When actively editing */
     background-color: transparent;
 }
 .element__editable--dark::placeholder { /* Styling for text areas */
@@ -1001,11 +998,17 @@ h1 {
     margin: 10px;
     width: 35px;
     height: 35px;
+    border: 2px solid #888882;
     background-color: #888882;
     border-radius: 5px;
     color: black;
 }
-
+.carousel__button:hover {
+    background-color: #A39E9C;
+}
+.carousel__button:active {
+    background-color: #cccccc;
+}
 
 .float-left {
     width: 25px;
