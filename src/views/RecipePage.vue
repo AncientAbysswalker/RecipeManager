@@ -25,7 +25,7 @@
                         dragClass="new__element__drag--notes"
                         ghostClass="ghosty"
                         :animation="150"
-                        :list="[{text: '', type: InstructionTypeEnum.NOTES}]"
+                        :list="[{text: '', type: $options.InstructionTypeEnum.NOTES}]"
                         :group="{ name: 'instruction-element', pull: 'clone', put: false }"
                     >
                         <img class="new__drag--paragraph" src="@/assets/paragraph.png" v-bind="attrs" v-on="on">
@@ -41,7 +41,7 @@
                         dragClass="new__element__drag--notes"
                         ghostClass="ghosty"
                         :animation="150"
-                        :list="[{steps: [''], type: InstructionTypeEnum.LIST_ORDERED}]"
+                        :list="[{steps: [''], type: $options.InstructionTypeEnum.LIST_ORDERED}]"
                         :group="{ name: 'instruction-element', pull: 'clone', put: false }"
                     >
                         <img class="new__drag--paragraph" src="@/assets/ordered_list.png" v-bind="attrs" v-on="on">
@@ -57,7 +57,7 @@
                         dragClass="new__element__drag--notes"
                         ghostClass="ghosty"
                         :animation="150"
-                        :list="[{steps: [''], type: InstructionTypeEnum.LIST_UNORDERED}]"
+                        :list="[{steps: [''], type: $options.InstructionTypeEnum.LIST_UNORDERED}]"
                         :group="{ name: 'instruction-element', pull: 'clone', put: false }"
                     >
                         <img class="new__drag--paragraph" src="@/assets/unordered_list.png" v-bind="attrs" v-on="on">
@@ -73,7 +73,7 @@
                         dragClass="new__element__drag--notes"
                         ghostClass="ghosty"
                         :animation="150"
-                        :list="[{contents: [], title: '', type: InstructionTypeEnum.CONTAINER}]"
+                        :list="[{contents: [], title: '', type: $options.InstructionTypeEnum.CONTAINER}]"
                         :group="{ name: 'instruction-element', pull: 'clone', put: false }"
                     >
                         <img class="new__drag--paragraph instruction__container" src="@/assets/subsection.png" v-bind="attrs" v-on="on">
@@ -89,7 +89,7 @@
                         dragClass="new__element__drag--notes"
                         ghostClass="ghosty"
                         :animation="150"
-                        :list="[{contents: [], title: '', type: InstructionTypeEnum.CONTAINER}]"
+                        :list="[{contents: [], title: '', type: $options.InstructionTypeEnum.CONTAINER}]"
                         :group="{ name: 'instruction-card', pull: 'clone', put: false }"
                     >
                         <img class="new__drag--paragraph instruction__container" src="@/assets/card.png" v-bind="attrs" v-on="on">
@@ -133,7 +133,7 @@
                             v-else
                             v-for="(image, index) in this.loaded_images"
                             :key="index"
-                            :src="(image.uploadState===ImageStateEnum.HOSTED) ? (
+                            :src="(image.uploadState===$options.ImageStateEnum.HOSTED) ? (
                                 `${services.url_cdn}/${image.hostedSource}` ||
                                     require(`@/static/card_loading.png`)) : image.localSource
                             "
@@ -217,11 +217,6 @@
                     />
                 </draggable>
             </div>
-
-            <br />
-            <br />
-            <hr>
-            <p>This is the id: {{ $route.params.id }}</p>
         </div>
     </div>
 </template>
@@ -256,16 +251,13 @@ export default {
         draggable,
         DeleteTagButton
     },
-    created() {
-        this.ImageStateEnum = {
-            HOSTED: 0,
-            LOCAL: 1,
-            LOCAL_BUT_UPLOADED: 2
-        }
+    ImageStateEnum: {
+        HOSTED: 0,
+        LOCAL: 1,
+        LOCAL_BUT_UPLOADED: 2
     },
-    data: () => ({
-        InstructionTypeEnum: InstructionTypeEnum,
-        
+    InstructionTypeEnum: InstructionTypeEnum,
+    data: () => ({        
         fields: {
             name: "",
             time_active: null,
@@ -279,19 +271,13 @@ export default {
             }],
             instructions: [{
                 title: "",
-                type: InstructionTypeEnum.CONTAINER,
+                type: 0, // InstructionTypeEnum.CONTAINER - wtf
                 contents: []
             }],
             _id: null
         },
         currentCarouselIndex: '0',
         loaded_images: [],
-        newimages: [],
-        newimagesorigin: [],
-        selectedFile: null,
-        images: [],
-        image_fields: ['id', 'name'],
-        total_images: 1,
         services: services,
         is_edit_mode: false,
         loading_text: 'dummy',
@@ -317,30 +303,17 @@ export default {
             }
         },
         fileSelected(evt) {
-            evt.preventDefault()
-            console.log(evt);
-            var file = evt.target.files[0]
-            console.log(file)
+            evt.preventDefault();
+            var file = evt.target.files[0];
             var url = URL.createObjectURL(file);
-            this.newimages.push(url);
-            this.loaded_images.push({uploadState: this.ImageStateEnum.LOCAL, localSource: url, rawImageFile: file});
-            this.newimagesorigin.push(file);
-        },
-        onFileChange(e) {
-            const file = e.target.files[0];
-            this.url = URL.createObjectURL(file);
-        },
-        bigTest() {
-            this.uploadImagesToServer().then(()=>{
-                console.log(9);
-            })
+            this.loaded_images.push({uploadState: this.$options.ImageStateEnum.LOCAL, localSource: url, rawImageFile: file});
         },
         uploadImagesToServer() {
             // First determine what might need uploading
             let listOfIndices = [];
             let formDataToPost = new FormData();
             this.loaded_images.forEach((image, index) => {
-                if (image.uploadState === this.ImageStateEnum.LOCAL) {
+                if (image.uploadState === this.$options.ImageStateEnum.LOCAL) {
                     listOfIndices.push(index);
                     formDataToPost.append("images", image.rawImageFile);
                 }
@@ -356,7 +329,7 @@ export default {
                 .then(res => {
                     res.data.hostedSources.forEach((hostedSource, index) => {
                         let indexToUpdate = listOfIndices[index];
-                        pageThis.loaded_images[indexToUpdate].uploadState = pageThis.ImageStateEnum.LOCAL_BUT_UPLOADED;
+                        pageThis.loaded_images[indexToUpdate].uploadState = pageThis.$options.ImageStateEnum.LOCAL_BUT_UPLOADED;
                         pageThis.loaded_images[indexToUpdate].hostedSource = hostedSource;
                     })
                 })
@@ -505,7 +478,7 @@ export default {
                         let currentElementType = currentElement.type;
 
                         // Is the element a sub-container or just an element?
-                        if (currentElementType === 0) {
+                        if (currentElementType === this.$options.InstructionTypeEnum.CONTAINER) {
                             // Ensure the sub-section has instructions in it
                             if (currentElement.contents.length === 0) {
                                 instructionSection.contents.splice(i, 1);
@@ -575,7 +548,7 @@ export default {
                 .get(`${this.services.url_api}/${this.$route.params.id}`)
                 .then(res => {
                     this.fields = res.data;
-                    this.loaded_images = this.fields.images.map((src) => ({ uploadState: this.ImageStateEnum.HOSTED, hostedSource: src }))
+                    this.loaded_images = this.fields.images.map((src) => ({ uploadState: this.$options.ImageStateEnum.HOSTED, hostedSource: src }))
                     this.is_loading = false;
                     console.log(this.fields);
                 })
