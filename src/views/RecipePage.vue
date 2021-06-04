@@ -134,7 +134,7 @@
                             v-for="(image, index) in this.loaded_images"
                             :key="index"
                             :src="(image.uploadState===$options.ImageStateEnum.HOSTED) ? (
-                                `${services.url_cdn}/${image.hostedSource}` ||
+                                `${$options.services.url_cdn}/${image.hostedSource}` ||
                                     require(`@/static/card_loading.png`)) : image.localSource
                             "
                             @error="imgPlaceholder"
@@ -244,13 +244,13 @@ function array_move(arr, old_index, new_index) {
 
 export default {
     name: 'RecipeCard',
-    props: ['todo', 'item', 'record', 'reqPic'],
     components: {
         InstructionCard,
         IngredientCard,
         draggable,
         DeleteTagButton
     },
+    services: services,
     ImageStateEnum: {
         HOSTED: 0,
         LOCAL: 1,
@@ -278,7 +278,6 @@ export default {
         },
         currentCarouselIndex: '0',
         loaded_images: [],
-        services: services,
         is_edit_mode: false,
         loading_text: 'dummy',
         is_loading: false,
@@ -325,7 +324,7 @@ export default {
             // The axios post promise for the image array
             function axiosImagePost(pageThis) {
                 return axios
-                .post(`${pageThis.services.url_cdn}/upload`, formDataToPost)
+                .post(`${pageThis.$options.services.url_cdn}/upload`, formDataToPost)
                 .then(res => {
                     res.data.hostedSources.forEach((hostedSource, index) => {
                         let indexToUpdate = listOfIndices[index];
@@ -362,7 +361,7 @@ export default {
                 // If recipe exists [PUT] to DB, else [PUSH] to DB
                 if (this.fields._id !== null) {
                     axios
-                    .put(`${this.services.url_api}/${this.$route.params.id}`, this.fields)
+                    .put(`${this.$options.services.url_api}/${this.$route.params.id}`, this.fields)
                     .then(res => {
                         console.log(res);
                         //end 'loading' here
@@ -373,7 +372,7 @@ export default {
                     .catch(err => console.log(err));
                 } else {
                     axios
-                    .post(`${this.services.url_api}/`, this.fields)
+                    .post(`${this.$options.services.url_api}/`, this.fields)
                     .then(res => {
                         console.log(res);
                         //end 'loading' here
@@ -545,7 +544,7 @@ export default {
                 this.is_loading = true;
                 this.loading_text = "Loading Recipe";
                 axios
-                .get(`${this.services.url_api}/${this.$route.params.id}`)
+                .get(`${this.$options.services.url_api}/${this.$route.params.id}`)
                 .then(res => {
                     this.fields = res.data;
                     this.loaded_images = this.fields.images.map((src) => ({ uploadState: this.$options.ImageStateEnum.HOSTED, hostedSource: src }))
