@@ -1,11 +1,12 @@
 <template>
   <div class="cards cards--column">
-    <RecipeCard
-      class="card"
-      v-for="(item, index) in jobs"
-      :key="index"
-      :item="item"
-    />
+    <div v-for="(item, index) in jobs" :key="index">
+      <RecipeCard
+        v-if="agnosticStringIncludes(item.name, filterString)"
+        class="card"
+        :item="item"
+      />
+    </div>
   </div>
   <!-- <div class="cards cards--column">
     <div class="card" v-bind:key="todo.id" v-for="todo in todos">
@@ -24,11 +25,21 @@ export default {
   components: {
     RecipeCard,
   },
-  props: ["todos"],
+  props: {
+    filterString: {
+      type: String,
+      default: ''
+    }
+  },
   data: () => ({
     services: services,
     jobs: [],
   }),
+  methods: {
+    agnosticStringIncludes(base, check) {
+      return base.toLowerCase().includes(check.toLowerCase());
+    }
+  },
   mounted() {
     // Import api data to populate recipe cards
     axios

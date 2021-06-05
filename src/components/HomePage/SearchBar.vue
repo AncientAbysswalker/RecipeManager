@@ -1,16 +1,13 @@
 <template>
   <div>
-    <form @submit.prevent="addTodo">
-      <input type="text" v-model="title" name="title" placeholder="Add Todo...">
-      <input type="submit" value="Submit" class="btn">
-    </form>
+      <input type="text" name="title" placeholder="Search for a Recipe by Name" @input="$emit('input', $event.target.value)"> <!-- Perhaps in future by tags as well? -->
   </div>
 </template>
 
 <script>
 // import uuid from 'uuid';
 export default {
-  name: "AddTodo",
+  name: "SearchBar",
   data() {
     return {
       title: ''
@@ -32,7 +29,7 @@ export default {
 </script>
 
 <style scoped>
-  form {
+  div {
     display: flex;
   }
 

@@ -1,27 +1,29 @@
 <template>
   <div id="app">
-    <AddTodo v-on:add-todo="addTodo" />
-    <Todos v-bind:todos="todos" v-on:del-todo="deleteTodo" />
+    <SearchBar v-on:input="pork" />
+    <Todos :filterString="filterString" v-bind:todos="todos" v-on:del-todo="deleteTodo" />
   </div>
 </template>
 
 <script>
-import Todos from "../components/Todos";
-import AddTodo from "../components/AddTodo";
+import Todos from "../components/HomePage/Todos";
+import SearchBar from "../components/HomePage/SearchBar";
 import axios from "axios";
 
 export default {
-  name: "Home",
+  name: "HomePage",
   components: {
     Todos,
-    AddTodo,
+    SearchBar,
   },
-  data() {
-    return {
-      todos: [],
-    };
-  },
+  data: () => ({
+    todos: [],
+    filterString: ''
+  }),
   methods: {
+    pork(updatedFilterString) {
+      this.filterString = updatedFilterString;
+    },
     deleteTodo(id) {
       axios
         .delete(`https://jsonplaceholder.typicode.com/todos/${id}`)

@@ -2,7 +2,7 @@
   <article class="card">
     <router-link :to="'/recipe/' + this.item._id">
       <div class="card-header" v-if="this.item.name">
-        <a href="#">{{ this.item.name }}</a>
+        <span>{{ this.item.name }}</span>
       </div>
       <div class="card-body">
         <v-img
@@ -84,6 +84,11 @@ export default {
   flex-wrap: wrap;
   justify-content: space-between;
   border-bottom: 2px #e0e0e0 solid;
+}
+.card-header span {
+  font-size: 1.6vw;
+  white-space: nowrap;
+  overflow: hidden;
 }
 @supports (display: grid) {
   .card-header {
