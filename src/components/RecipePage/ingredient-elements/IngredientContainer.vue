@@ -25,7 +25,7 @@
 
                 <!-- Unit 
                 <input class="element__text ingredient__list--unit" :disabled="!isEditMode" v-model="elementData.ingredients[index].unit" :placeholder="isEditMode ? 'unit' : ''" />-->
-                <select ref="select" class="element__text ingredient__list--unit" :class="elementData.ingredients[index].unit === '' ? 'lgr' : ''" :placholder="isEditMode ? 'unit' : ''" :disabled="!isEditMode" v-model="elementData.ingredients[index].unit">
+                <select ref="select" class="element__text ingredient__list--unit" :class="elementData.ingredients[index].unit === '' ? 'lgr' : ''" :placeholder="isEditMode ? 'unit' : ''" :disabled="!isEditMode" v-model="elementData.ingredients[index].unit">
                     <option class="red" value="" disabled selected hidden>unit</option>
                     <option v-for="option in unitOptions" :value="option.unit" :key="option.unit">
                         {{ option.unit }}

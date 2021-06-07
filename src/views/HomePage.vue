@@ -1,7 +1,17 @@
 <template>
   <div id="app">
-    <SearchBar v-on:input="pork" />
-    <Todos :filterString="filterString" v-bind:todos="todos" v-on:del-todo="deleteTodo" />
+    <SearchBar 
+      :availableTags = "this.availableTags"
+      v-on:freeFilter = "updateFreeFilter" 
+      @tagFilterSelected = "addToSelectedTags" 
+    />
+    <Todos 
+      :filterString="filterString"
+      :filterTags="selectedTags"
+      v-bind:todos="todos"
+      v-on:del-todo="deleteTodo"
+      v-on:updateAvailableTags = "updateAvailableTags" 
+    />
   </div>
 </template>
 
@@ -18,11 +28,21 @@ export default {
   },
   data: () => ({
     todos: [],
-    filterString: ''
+    filterString: '',
+    availableTags: [],
+    selectedTags: []
   }),
   methods: {
-    pork(updatedFilterString) {
+    updateFreeFilter(updatedFilterString) {
       this.filterString = updatedFilterString;
+    },
+    addToSelectedTags(selectedTag) {
+      if (!this.selectedTags.map((tag) => { return tag.toLowerCase() }).includes(selectedTag.toLowerCase())) {
+        this.selectedTags.push(selectedTag);
+      }
+    },
+    updateAvailableTags(availableTags) {
+      this.availableTags = availableTags;
     },
     deleteTodo(id) {
       axios
