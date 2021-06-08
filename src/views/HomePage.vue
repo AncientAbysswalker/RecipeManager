@@ -1,16 +1,16 @@
 <template>
-  <div id="app">
+  <div id="home">
     <SearchBar 
-      :availableTags = "this.availableTags"
-      v-on:freeFilter = "updateFreeFilter" 
-      @tagFilterSelected = "addToSelectedTags" 
+      :availableTags = "availableTags"
+      :selectedTags = "selectedTags"
+      @freeFilter = "updateFreeFilter" 
+      @addToSelectedTags = "addToSelectedTags" 
+      @deleteSelectedTagAtIndex = "deleteSelectedTagAtIndex"
     />
     <Todos 
       :filterString="filterString"
       :filterTags="selectedTags"
-      v-bind:todos="todos"
-      v-on:del-todo="deleteTodo"
-      v-on:updateAvailableTags = "updateAvailableTags" 
+      @updateAvailableTags = "updateAvailableTags" 
     />
   </div>
 </template>
@@ -24,10 +24,9 @@ export default {
   name: "HomePage",
   components: {
     Todos,
-    SearchBar,
+    SearchBar
   },
   data: () => ({
-    todos: [],
     filterString: '',
     availableTags: [],
     selectedTags: []
@@ -41,64 +40,19 @@ export default {
         this.selectedTags.push(selectedTag);
       }
     },
+    deleteSelectedTagAtIndex(index) {
+      this.selectedTags.splice(index, 1);
+    },
     updateAvailableTags(availableTags) {
       this.availableTags = availableTags;
     },
-    deleteTodo(id) {
-      axios
-        .delete(`https://jsonplaceholder.typicode.com/todos/${id}`)
-        .then(
-          // eslint-disable-next-line no-unused-vars
-          (res) => (this.todos = this.todos.filter((todo) => todo.id !== id))
-        )
-        .catch((err) => console.log(err));
-    },
-    addTodo(newTodo) {
-      const { title, completed } = newTodo;
-
-      axios
-        .post("https://jsonplaceholder.typicode.com/todos", {
-          title,
-          completed,
-        })
-        .then((res) => {
-          this.todos = [...this.todos, res.data];
-          console.log(res.data.id);
-        })
-        .catch((err) => console.log(err));
-    },
-  },
-  created() {
-    axios
-      .get("https://jsonplaceholder.typicode.com/todos?_limit=5")
-      .then((res) => (this.todos = res.data))
-      .catch((err) => console.log(err));
-  },
+  }
 };
 </script>
 
 <style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
+/* 
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.4;
-}
-
-.btn {
-  display: inline-block;
-  border: none;
-  background: #555;
-  color: #fff;
-  padding: 7px 20px;
-  cursor: pointer;
-}
-
-.btn:hover {
-  background: #666;
-}
+}*/
 </style>

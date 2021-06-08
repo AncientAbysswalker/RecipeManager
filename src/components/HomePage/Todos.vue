@@ -8,11 +8,6 @@
       />
     </div>
   </div>
-  <!-- <div class="cards cards--column">
-    <div class="card" v-bind:key="todo.id" v-for="todo in todos">
-      <RecipeCard v-bind:todo="todo" v-on:del-todo="$emit('del-todo', todo.id)" />
-    </div>
-  </div>-->
 </template>
 
 <script>
