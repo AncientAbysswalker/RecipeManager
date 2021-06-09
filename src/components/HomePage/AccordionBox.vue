@@ -1,131 +1,90 @@
 <template>
-  <div>
-    <button class="accordion" @click="tansitionThing">Section 1</button>
-    <div class="panel" ref="pork">
+  <div @click="toggleAccordion">
+    <div class="accordion__header">
+      <span class="accordion__label">{{this.label}}</span>
+      <span class="accordion__line"></span>
+      <span class="accordion__carret" ref="accordionCarret">▼</span>
+    </div>
+    <div class="accordion__container" ref="accordionContainer">
       <slot></slot>
     </div>
   </div>
 </template>
 
 <script>
-import RecipeCard from "./RecipeCard.vue";
-const services = require("@/helpers/services");
-import axios from "axios";
-
-function flattenTagsFromAllRecipes(listOfRecipes) {
-  let listOfTags = listOfRecipes.map(recipe => recipe.tags);
-  let flattenedList = [];
-  for (const tags of listOfTags) {
-    for (const tag of tags) {
-      if (!flattenedList.map((tag) => { return tag.toLowerCase() }).includes(tag.toLowerCase())) {
-        flattenedList.push(tag);
-      }
-    }
-  }
-
-  return flattenedList;
-}
 
 export default {
   name: "AccordionBox",
-  components: {
-    RecipeCard,
-  },
   props: {
+    startExpanded: {
+      type: Boolean
+    },
+    label: {
+      type: String,
+      default: 'wersg'
+    },
   },
   data: () => ({
-    services: services,
-    jobs: [],
   }),
   methods: {
-    agnosticStringIncludes(base, check) {
-      return base.toLowerCase().includes(check.toLowerCase());      
-    },
-    agnosticStringIncludedInStringArray(strArr, check) {
-      for (const str of strArr) {
-        if (this.agnosticStringIncludes(str, check)) {
-          return true;
-        }
-      }
-      return false;
-    },
-    agnosticTagsIncludedInStringArray(itemTagArr, checkTagArr) {
-      if (checkTagArr.length===0) {
-        return true
-      }
-
-      for (const itemTag of itemTagArr) {
-        for (const checkTag of checkTagArr) {
-          if (checkTag.toLowerCase() === itemTag.toLowerCase()) {
-            return true;
-          }
-        }
-      }
-      return false;
-    },
-    tansitionThing(evt) {
-      let panel = this.$refs.pork;
-      if (panel.style.maxHeight) {
-        panel.style.maxHeight = null;
+    toggleAccordion() {
+      const accordionContainer = this.$refs.accordionContainer;
+      if (accordionContainer.style.maxHeight !== "0px") {
+        accordionContainer.style.maxHeight = "0px";
       } else {
-        panel.style.maxHeight = panel.scrollHeight + "px";
+        accordionContainer.style.maxHeight = accordionContainer.scrollHeight + "px";
       } 
+
+      this.toggleCarret();
+    },
+    toggleCarret(evt) {
+      const accordionCarret = this.$refs.accordionCarret;
+      accordionCarret.classList.toggle("accordion__carret--rotate");
     }
   },
   mounted() {
-    // Import api data to populate recipe cards
-    axios
-      .get(
-        `${this.services.url_api}?fields=name&fields=time_active&fields=images&fields=tags`
-      )
-      .then((res) => {
-        this.jobs = res.data;
-        this.$emit('updateAvailableTags', flattenTagsFromAllRecipes(this.jobs));
-      })
-      .catch((err) => console.log(err));
-  },
+    if (!this.startExpanded) {
+        const accordionContainer = this.$refs.accordionContainer;
+        const accordionCarret = this.$refs.accordionCarret;
+        accordionContainer.style.maxHeight = "0px";
+        accordionCarret.classList.add("accordion__carret--rotate");
+    }
+  }
 };
 </script>
 
 <style scoped>
-.cards {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: start;
-}
-@supports (display: grid) {
-  .cards {
-    display: grid;
-  }
-}
-.cards > * {
-  flex: 1 0 300px;
-  margin-left: var(--space-s);
-  margin-right: var(--space-s);
-}
-@supports (display: grid) {
-  .cards {
-    grid-gap: 1rem;
-    margin: 0;
-  }
-  .cards > * {
-    margin: 0;
-  }
-}
-.cards--column > * {
-  max-width: 500px;
-}
-@supports (display: grid) {
-  .cards--column {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  }
-}
-
-.panel {
-  padding: 0 18px;
-  background-color: white;
-  max-height: 0;
+.accordion__container {
+  background-color: red;
   overflow: hidden;
   transition: max-height 0.2s ease-out;
+}
+.accordion__header {
+  display: flex;
+  align-items: center;
+}
+.accordion__header span {
+  margin: 5px; 
+}
+.accordion__label {
+  color: grey;
+  font-size: 24px;
+}
+.accordion__line {
+  display:block;
+  width: 100%;
+  border-top: 2px solid grey;
+}
+.accordion__carret {
+  line-height: 0.8em;
+  -webkit-user-select: none; /* Safari */        
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
+
+  transition: transform 150ms ease;
+}
+.accordion__carret--rotate {
+  transform: rotate( -180deg );        
 }
 </style>

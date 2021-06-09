@@ -1,7 +1,18 @@
 <template>
   <div>
     <div>
-      <AccordionBox>
+      <AccordionBox class="container__accordion" label="Test">
+        <div class="cards cards--column">
+          <div v-for="(item, index) in jobs" :key="index">
+            <RecipeCard
+              v-if="agnosticStringIncludes(item.name, filterString) && agnosticTagsIncludedInStringArray(item.tags, filterTags)"
+              class="card"
+              :item="item"
+            />
+          </div>
+        </div>
+      </AccordionBox>
+      <AccordionBox class="container__accordion" label="Test22" startExpanded>
         <div class="cards cards--column">
           <div v-for="(item, index) in jobs" :key="index">
             <RecipeCard
@@ -143,13 +154,5 @@ export default {
   .cards--column {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
-}
-
-.panel {
-  padding: 0 18px;
-  background-color: white;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.2s ease-out;
 }
 </style>
