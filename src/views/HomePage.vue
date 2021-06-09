@@ -7,7 +7,7 @@
       @addToSelectedTags = "addToSelectedTags" 
       @deleteSelectedTagAtIndex = "deleteSelectedTagAtIndex"
     />
-    <Todos 
+    <RecipesPane 
       :filterString="filterString"
       :filterTags="selectedTags"
       @updateAvailableTags = "updateAvailableTags" 
@@ -16,14 +16,14 @@
 </template>
 
 <script>
-import Todos from "../components/HomePage/Todos";
+import RecipesPane from "../components/HomePage/RecipesPane";
 import SearchBar from "../components/HomePage/SearchBar";
 import axios from "axios";
 
 export default {
   name: "HomePage",
   components: {
-    Todos,
+    RecipesPane,
     SearchBar
   },
   data: () => ({

@@ -2,15 +2,11 @@
   <div>
     <div>
       <AccordionBox class="container__accordion" label="Test">
-        <div class="cards cards--column">
-          <div v-for="(item, index) in jobs" :key="index">
-            <RecipeCard
-              v-if="agnosticStringIncludes(item.name, filterString) && agnosticTagsIncludedInStringArray(item.tags, filterTags)"
-              class="card"
-              :item="item"
-            />
-          </div>
-        </div>
+        <RecipeCardArray
+          :jobs="jobs"
+          :filterString="filterString"
+          :filterTags="filterTags"
+        />
       </AccordionBox>
       <AccordionBox class="container__accordion" label="Test22" startExpanded>
         <div class="cards cards--column">
@@ -34,6 +30,7 @@ import axios from "axios";
 
 // Components
 import RecipeCard from "./RecipeCard.vue";
+import RecipeCardArray from "./RecipeCardArray.vue";
 import AccordionBox from "./AccordionBox.vue";
 
 // Global Functions
@@ -53,9 +50,10 @@ function flattenTagsFromAllRecipes(listOfRecipes) {
 
 // Export
 export default {
-  name: "Todos",
+  name: "RecipesPane",
   components: {
     RecipeCard,
+    RecipeCardArray,
     AccordionBox
   },
   props: {
@@ -154,5 +152,9 @@ export default {
   .cards--column {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
+}
+
+.container__accordion {
+  padding: 5px;
 }
 </style>

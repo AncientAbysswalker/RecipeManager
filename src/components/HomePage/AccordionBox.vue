@@ -62,6 +62,7 @@ export default {
 .accordion__header {
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 .accordion__header span {
   margin: 5px; 
