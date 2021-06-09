@@ -1,31 +1,17 @@
 <template>
   <div>
-    <div>
-      <AccordionBox>
-        <div class="cards cards--column">
-          <div v-for="(item, index) in jobs" :key="index">
-            <RecipeCard
-              v-if="agnosticStringIncludes(item.name, filterString) && agnosticTagsIncludedInStringArray(item.tags, filterTags)"
-              class="card"
-              :item="item"
-            />
-          </div>
-        </div>
-      </AccordionBox>
+    <button class="accordion" @click="tansitionThing">Section 1</button>
+    <div class="panel" ref="pork">
+      <slot></slot>
     </div>
   </div>
 </template>
 
 <script>
-// Modules
+import RecipeCard from "./RecipeCard.vue";
 const services = require("@/helpers/services");
 import axios from "axios";
 
-// Components
-import RecipeCard from "./RecipeCard.vue";
-import AccordionBox from "./AccordionBox.vue";
-
-// Global Functions
 function flattenTagsFromAllRecipes(listOfRecipes) {
   let listOfTags = listOfRecipes.map(recipe => recipe.tags);
   let flattenedList = [];
@@ -40,22 +26,12 @@ function flattenTagsFromAllRecipes(listOfRecipes) {
   return flattenedList;
 }
 
-// Export
 export default {
-  name: "Todos",
+  name: "AccordionBox",
   components: {
     RecipeCard,
-    AccordionBox
   },
   props: {
-    filterString: {
-      type: String,
-      default: ''
-    },
-    filterTags: {
-      type: Array,
-      default: []
-    }
   },
   data: () => ({
     services: services,
