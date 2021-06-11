@@ -1,9 +1,8 @@
 <template>
   <div>
     <div class="cards cards--column">
-      <div v-for="(item, index) in jobs" :key="index">
+      <div v-for="(item, index) in filteredItems" :key="index">
         <RecipeCard
-          v-if="agnosticStringIncludes(item.name, filterString) && agnosticTagsIncludedInStringArray(item.tags, filterTags)"
           class="card"
           :item="item"
         />
@@ -16,6 +15,33 @@
 
 // Components
 import RecipeCard from "./RecipeCard.vue";
+
+// Global Functions
+function agnosticStringIncludes(base, check) {
+  return base.toLowerCase().includes(check.toLowerCase());      
+}
+function agnosticStringIncludedInStringArray(strArr, check) {
+  for (const str of strArr) {
+    if (this.agnosticStringIncludes(str, check)) {
+      return true;
+    }
+  }
+  return false;
+}
+function agnosticTagsIncludedInStringArray(itemTagArr, checkTagArr) {
+  if (checkTagArr.length===0) {
+    return true
+  }
+
+  for (const itemTag of itemTagArr) {
+    for (const checkTag of checkTagArr) {
+      if (checkTag.toLowerCase() === itemTag.toLowerCase()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 // Export
 export default {
@@ -37,31 +63,9 @@ export default {
       default: []
     }
   },
-  methods: {
-    agnosticStringIncludes(base, check) {
-      return base.toLowerCase().includes(check.toLowerCase());      
-    },
-    agnosticStringIncludedInStringArray(strArr, check) {
-      for (const str of strArr) {
-        if (this.agnosticStringIncludes(str, check)) {
-          return true;
-        }
-      }
-      return false;
-    },
-    agnosticTagsIncludedInStringArray(itemTagArr, checkTagArr) {
-      if (checkTagArr.length===0) {
-        return true
-      }
-
-      for (const itemTag of itemTagArr) {
-        for (const checkTag of checkTagArr) {
-          if (checkTag.toLowerCase() === itemTag.toLowerCase()) {
-            return true;
-          }
-        }
-      }
-      return false;
+  computed: {
+    filteredItems() {
+      return this.jobs.filter((item) => (agnosticStringIncludes(item.name, this.filterString) && agnosticTagsIncludedInStringArray(item.tags, this.filterTags)));
     }
   }
 };
@@ -101,7 +105,4 @@ export default {
   }
 }
 
-.container__accordion {
-  padding: 5px;
-}
 </style>

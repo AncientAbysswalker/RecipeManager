@@ -2,18 +2,26 @@
   <div>
     <div>
       <AccordionBox class="container__accordion" label="Test">
-        <RecipeCardArray
-          :jobs="jobs"
-          :filterString="filterString"
-          :filterTags="filterTags"
-        />
+        <div class="cards cards--column">
+          <div v-for="(item, index) in jobs" :key="index">
+            <RecipeCard
+              v-if="agnosticStringIncludes(item.name, filterString) && agnosticTagsIncludedInStringArray(item.tags, filterTags)"
+              class="card"
+              :item="item"
+            />
+          </div>
+        </div>
       </AccordionBox>
-      <AccordionBox class="container__accordion" label="Test" startExpanded>
-        <RecipeCardArray
-          :jobs="jobs"
-          :filterString="filterString"
-          :filterTags="filterTags"
-        />
+      <AccordionBox class="container__accordion" label="Test22" startExpanded>
+        <div class="cards cards--column">
+          <div v-for="(item, index) in jobs" :key="index">
+            <RecipeCard
+              v-if="agnosticStringIncludes(item.name, filterString) && agnosticTagsIncludedInStringArray(item.tags, filterTags)"
+              class="card"
+              :item="item"
+            />
+          </div>
+        </div>
       </AccordionBox>
     </div>
   </div>
@@ -26,7 +34,6 @@ import axios from "axios";
 
 // Components
 import RecipeCard from "./RecipeCard.vue";
-import RecipeCardArray from "./RecipeCardArray.vue";
 import AccordionBox from "./AccordionBox.vue";
 
 // Global Functions
@@ -49,7 +56,6 @@ export default {
   name: "RecipesPane",
   components: {
     RecipeCard,
-    RecipeCardArray,
     AccordionBox
   },
   props: {
