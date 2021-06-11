@@ -14,11 +14,12 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
   const qry = require("../helpers/query_helpers");
 
   // Load config
-  const recipes_config = require("./recipes_config");
+  const db_name = require("./db_config").db_name;
+  const recipes_collection = require("./db_config").recipes_collection;
 
   // Set up MongoDB variables
-  let db = client.db(recipes_config.db);
-  let recipes = db.collection("recipes");
+  let db = client.db(db_name);
+  let recipes = db.collection(recipes_collection);
 
   // ExpressJS Router
   router

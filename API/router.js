@@ -4,6 +4,13 @@ const app = express();
 // Load config
 const config = require("./mongo_config");
 
+// Allow Cross-Origin
+var allowCrossDomain = function (req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+}
+app.use(allowCrossDomain)
+
 // Use body-parser to parse the body af a request
 let bodyParser = require("body-parser");
 app.use(bodyParser.json());
@@ -39,6 +46,15 @@ MongoClient.connect(
         color_disabled
       );
       app.use("/recipes", route_recipes);
+
+      // Handle Routing for userdata API
+      const route_userdata = require("./routes/userdata")(
+        client,
+        log_requests,
+        log_errors,
+        color_disabled
+      );
+      app.use("/userdata", route_userdata);
 
       // Indicate if the router has started successfully
       app.listen(3000, () => {
