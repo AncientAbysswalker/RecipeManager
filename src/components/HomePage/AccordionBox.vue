@@ -1,6 +1,6 @@
 <template>
-  <div @click="toggleAccordion">
-    <div class="accordion__header">
+  <div>
+    <div class="accordion__header" @click="toggleAccordion">
       <span class="accordion__label">{{this.label}}</span>
       <span class="accordion__line"></span>
       <span class="accordion__carret" ref="accordionCarret">▼</span>
@@ -68,6 +68,7 @@ export default {
   margin: 5px; 
 }
 .accordion__label {
+  white-space: nowrap;
   color: grey;
   font-size: 24px;
 }

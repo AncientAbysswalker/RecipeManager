@@ -1,16 +1,16 @@
 <template>
   <div>
     <div>
-      <AccordionBox class="container__accordion" label="Test">
+      <AccordionBox class="container__accordion" label="All Recipes">
         <RecipeCardArray
           :jobs="jobs"
           :filterString="filterString"
           :filterTags="filterTags"
         />
       </AccordionBox>
-      <AccordionBox class="container__accordion" label="Test" startExpanded>
+      <AccordionBox v-for="(categoryTitle, index) in Object.keys(recipeCategories)" class="container__accordion" :label="categoryTitle" startExpanded>
         <RecipeCardArray
-          :jobs="jobs"
+          :jobs="categoricalRecipes(recipeCategories[categoryTitle])"
           :filterString="filterString"
           :filterTags="filterTags"
         />
@@ -65,8 +65,12 @@ export default {
   data: () => ({
     services: services,
     jobs: [],
+    recipeCategories: []
   }),
   methods: {
+    categoricalRecipes(categoricalRecipeIds) {
+      return this.jobs.filter((item) => (categoricalRecipeIds.includes(item._id)));
+    },
     agnosticStringIncludes(base, check) {
       return base.toLowerCase().includes(check.toLowerCase());      
     },
@@ -110,6 +114,15 @@ export default {
       .then((res) => {
         this.jobs = res.data;
         this.$emit('updateAvailableTags', flattenTagsFromAllRecipes(this.jobs));
+
+        axios
+          .get(
+            `http://www.raviole.cerberus-heuristics.com/userdata/categories/test`
+          )
+          .then((res) => {
+            this.recipeCategories = res.data.homePageCategories;
+          })
+          .catch((err) => console.log(err));
       })
       .catch((err) => console.log(err));
   },
