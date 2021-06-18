@@ -537,6 +537,7 @@ export default {
         },
     },
     mounted() {
+        //axios.get(`${this.$options.services.url_api}`, {withCredentials: true}).then(res => {console.log('res');console.log(res)})
         // If new recipe, don't try to load data
         if (this.$route.params.id !== "new") {
             // Only load data if correct length of id provided
@@ -544,16 +545,17 @@ export default {
                 this.is_loading = true;
                 this.loading_text = "Loading Recipe";
                 axios
-                .get(`${this.$options.services.url_api}/${this.$route.params.id}`)
+                .get(`${this.$options.services.url_api}/${this.$route.params.id}`, {withCredentials: true, credentials: 'include'})
                 .then(res => {
                     this.fields = res.data;
                     this.loaded_images = this.fields.images.map((src) => ({ uploadState: this.$options.ImageStateEnum.HOSTED, hostedSource: src }))
                     this.is_loading = false;
                     console.log(this.fields);
+                    console.log(res);
                 })
                 .catch(err => {
                     console.log(err);
-                    this.$router.push('/');
+                    //this.$router.push('/');
                 })
             } else {
                 console.error("Invalid recipe id: 24-digit hex required");

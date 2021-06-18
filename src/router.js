@@ -2,6 +2,7 @@ import Vue from "vue";
 import Router from "vue-router";
 import HomePage from "./views/HomePage.vue";
 import RecipePage from "./views/RecipePage.vue";
+import LoginPage from "./views/LoginPage.vue";
 import About from "./views/About.vue";
 
 Vue.use(Router);
@@ -24,5 +25,6 @@ export default new Router({
       //   import(/* webpackChunkName: "about" */ "./views/About.vue"),
     },
     { path: "/recipe/:id", component: RecipePage },
+    { path: "/login", component: LoginPage },
   ],
 });

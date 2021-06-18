@@ -10,28 +10,29 @@ module.exports = (log_requests, log_errors, color_disabled) => {
   let module = {};
 
   // Log timestamp and that a GET request is recieved to console. Return timestamp of request
-  module.req_get = (request) => {
-    return module.req("[GET]", request);
+  module.req_get = (request, response, next) => {
+    return module.req("[GET]", request, next);
   };
 
   // Log timestamp and that a PUT request is recieved to console. Return timestamp of request
-  module.req_put = (request) => {
-    return module.req("[PUT]", request);
+  module.req_put = (request, response, next) => {
+    return module.req("[PUT]", request, next);
   };
 
   // Log timestamp and that a POST request is recieved to console. Return timestamp of request
-  module.req_post = (request) => {
-    return module.req("[POST]", request);
+  module.req_post = (request, response, next) => {
+    return module.req("[POST]", request, next);
   };
 
   // Log timestamp and that request is recieved to console. Return timestamp of request
-  module.req = (method, request) => {
+  module.req = (method, request, next) => {
     let clf_date = clf.date();
 
     console.log(clf_date);
-    console.log(`Recieved ${c.yel(method)} request ${c.cyn(request)}`);
+    console.log(`Recieved ${c.yel(method)} request ${c.cyn(request.originalUrl)}`);
 
-    return clf_date;
+    request.clf = clf_date;
+    next();
   };
 
   // Log an error on the console and log the data to the error log file if not disabled

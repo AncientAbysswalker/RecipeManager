@@ -21,12 +21,23 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
   let db = client.db(db_name);
   let recipes = db.collection(recipes_collection);
 
+  // Common functions
+  function isRecipeOwner(request, response, next) {
+    if (request.session && request.session.user) {
+      next();     //If session exists, proceed to page
+    } else {
+      console.log("I AM A FUCKING PORKCHOP BITCH!");
+      log.fail("PUT", request.originalUrl, 0, 401, "prokdkdd");
+      response.status(401).send({
+        status: 401,
+        message: "The user is not authorized to carry out this thing",
+      });
+    }
+  }
+
   // ExpressJS Router
   router
-    .post("/", (request, response) => {
-      // Log request and save time of request
-      let time_req = log.req_post(request.originalUrl);
-
+    .post("/", log.req_post, (request, response) => {
       try {
         // Build new entry from request body. Any fields not included will become null
         let new_entry = {
@@ -43,10 +54,10 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
         // Insert one recipe
         recipes.insertOne(new_entry, (err, result) => {
           if (!err) {
-            log.success("POST", request.originalUrl, time_req, 201);
+            log.success("POST", request.originalUrl, request.clf, 201);
             response.status(201).send(result.ops[0]);
           } else {
-            log.fail("POST", request.originalUrl, time_req, 500, err);
+            log.fail("POST", request.originalUrl, request.clf, 500, err);
             response.status(500).send({
               status: 500,
               message: "Internal database exception",
@@ -54,7 +65,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
           }
         });
       } catch (err) {
-        log.fail("POST", request.originalUrl, time_req, 500, err);
+        log.fail("POST", request.originalUrl, request.clf, 500, err);
         response.status(500).send({
           status: 500,
           message: "Internal database exception",
@@ -63,10 +74,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     })
 
     // [GET] the data for all recipes, with optional filtering
-    .get("/", (request, response) => {
-      // Log request and save time of request
-      let time_req = log.req_get(request.originalUrl);
-
+    .get("/", log.req_get, (request, response) => {
       try {
         // Ensure that the fields will always be a list
         let fields = qry.paramToList(request.query.fields);
@@ -81,13 +89,13 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
 
             if (!err) {
               if (result.length !== 0) {
-                log.success("GET", request.originalUrl, time_req, 200);
+                log.success("GET", request.originalUrl, request.clf, 200);
                 response.json(result);
               } else {
                 log.fail(
                   "GET",
                   request.originalUrl,
-                  time_req,
+                  request.clf,
                   404,
                   "The requested resource could not be found"
                 );
@@ -97,7 +105,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                 });
               }
             } else {
-              log.fail("GET", request.originalUrl, time_req, 500, err);
+              log.fail("GET", request.originalUrl, request.clf, 500, err);
               response.status(500).send({
                 status: 500,
                 message: "Internal database exception",
@@ -105,7 +113,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             }
           });
       } catch (err) {
-        log.fail("GET", request.originalUrl, time_req, 500, err);
+        log.fail("GET", request.originalUrl, request.clf, 500, err);
         response.status(500).send({
           status: 500,
           message: "Internal database exception",
@@ -114,10 +122,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     })
 
     // [GET] the data for one recipe using its db id, with optional filtering
-    .get("/:id", (request, response) => {
-      // Log request and save time of request
-      let time_req = log.req_get(request.originalUrl);
-
+    .get("/:id", log.req_get, (request, response) => {
       // First confirm that the id request is OK
       try {
         // Get the id in the appropriate format
@@ -136,7 +141,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                   log.fail(
                     "GET",
                     request.originalUrl,
-                    time_req,
+                    request.clf,
                     404,
                     "The requested resource could not be found"
                   );
@@ -145,11 +150,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                     message: "The requested resource could not be found",
                   });
                 } else {
-                  log.success("GET", request.originalUrl, time_req, 200);
+                  log.success("GET", request.originalUrl, request.clf, 200);
                   response.json(result);
                 }
               } else {
-                log.fail("GET", request.originalUrl, time_req, 500, err);
+                log.fail("GET", request.originalUrl, request.clf, 500, err);
                 response.status(500).send({
                   status: 500,
                   message: "Internal database exception",
@@ -158,7 +163,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             }
           );
         } catch (err) {
-          log.fail("GET", request.originalUrl, time_req, 500, err);
+          log.fail("GET", request.originalUrl, request.clf, 500, err);
           response.status(500).send({
             status: 500,
             message: "Internal database exception",
@@ -170,7 +175,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
         log.fail(
           "GET",
           request.originalUrl,
-          time_req,
+          request.clf,
           400,
           "The id provided must be a single string of 12 bytes or 24 hex characters"
         );
@@ -184,10 +189,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
 
 
     // [PUT] the data for one recipe using its db id, with optional filtering
-    .put("/:id", (request, response) => {
-      // Log request and save time of request
-      let time_req = log.req_put(request.originalUrl);
-
+    .put("/:id", log.req_put, isRecipeOwner, (request, response) => {
       // First confirm that the id request is OK
       try {
         // Build new entry from request body. Any fields not included will become null
@@ -215,7 +217,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                   log.fail(
                     "PUT",
                     request.originalUrl,
-                    time_req,
+                    request.clf,
                     404,
                     "The requested resource could not be found"
                   );
@@ -224,11 +226,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                     message: "The requested resource could not be found",
                   });
                 } else {
-                  log.success("PUT", request.originalUrl, time_req, 200);
+                  log.success("PUT", request.originalUrl, request.clf, 200);
                   response.json(result);
                 }
               } else {
-                log.fail("PUT", request.originalUrl, time_req, 500, err);
+                log.fail("PUT", request.originalUrl, request.clf, 500, err);
                 response.status(500).send({
                   status: 500,
                   message: "Internal database exception",
@@ -237,7 +239,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             }
           );
         } catch (err) {
-          log.fail("PUT", request.originalUrl, time_req, 500, err);
+          log.fail("PUT", request.originalUrl, request.clf, 500, err);
           response.status(500).send({
             status: 500,
             message: "Internal database exception",
@@ -249,7 +251,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
         log.fail(
           "PUT",
           request.originalUrl,
-          time_req,
+          request.clf,
           400,
           "The id provided must be a single string of 12 bytes or 24 hex characters"
         );

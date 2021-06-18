@@ -114,10 +114,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     // })
 
     // [GET] the data for one recipe using its db id, with optional filtering
-    .get("/categories/:user", (request, response) => {
-      // Log request and save time of request
-      let time_req = log.req_get(request.originalUrl);
-
+    .get("/categories/:user", log.req_get, (request, response) => {
       // First confirm that the id request is OK
       try {
         // Get the id in the appropriate format
@@ -137,7 +134,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                   log.fail(
                     "GET",
                     request.originalUrl,
-                    time_req,
+                    request.clf,
                     404,
                     "The requested resource could not be found"
                   );
@@ -146,11 +143,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                     message: "The requested resource could not be found",
                   });
                 } else {
-                  log.success("GET", request.originalUrl, time_req, 200);
+                  log.success("GET", request.originalUrl, request.clf, 200);
                   response.json(result);
                 }
               } else {
-                log.fail("GET", request.originalUrl, time_req, 500, err);
+                log.fail("GET", request.originalUrl, request.clf, 500, err);
                 response.status(500).send({
                   status: 500,
                   message: "Internal database exception",
@@ -159,7 +156,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             }
           );
         } catch (err) {
-          log.fail("GET", request.originalUrl, time_req, 500, err);
+          log.fail("GET", request.originalUrl, request.clf, 500, err);
           response.status(500).send({
             status: 500,
             message: "Internal database exception",
@@ -171,7 +168,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
         log.fail(
           "GET",
           request.originalUrl,
-          time_req,
+          request.clf,
           400,
           "The id provided must be a single string of 12 bytes or 24 hex characters"
         );

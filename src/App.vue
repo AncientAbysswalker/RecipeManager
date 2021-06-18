@@ -39,6 +39,15 @@
         <span class="mr-2">Latest Release</span>
         <v-icon>mdi-open-in-new</v-icon>
       </v-btn>                        -->
+      <div>
+        <div v-if="this.$root.sessionInfo !== null && this.$root.sessionInfo.loggedIn" class="header__login-info">
+          <span>Logged in as {{this.$root.sessionInfo.username}}</span>
+          <span @click="logoutSession">Log Out</span>
+        </div>
+        <div v-else-if="this.$root.sessionInfo !== null" class="header__login-info">
+          <router-link to="/login">Log In</router-link>
+        </div>
+      </div>
     </v-app-bar>
     
     <!-- Main Application -->
@@ -49,15 +58,76 @@
 </template>
 
 <script>
+// Modules
+import axios from "axios";
+
+// Enums
+
+
 //import Header from "./components/layout/Header";
 export default {
   name: "App",
   //components: {
   //  Header,
   //},
+  SessionStateEnum: {
+    LIMBO: 0,
+    LOGGED_OUT: 1,
+    LOGGED_IN: 2
+  },
   data: () => ({
-    //
+    test: false
   }),
+  computed: {
+    myGlobalVariable: function () {
+        console.log('fuck')
+        console.log(this.$sessionInfo !== null ? this.$sessionInfo.loggedIn : false)
+        return this.$sessionInfo !== null ? this.$sessionInfo.loggedIn : false;
+    },
+  },
+  watch: {
+    '$route' (to, from) {
+      this.checkSession();
+    }
+  },
+  mounted() {
+    this.checkSession();
+  },
+  methods: {
+    logoutSession() {
+      axios
+        .post(
+          `http://www.raviole.cerberus-heuristics.com/uac/logout`, {}, {withCredentials: true, credentials: 'include'}
+        )
+        .then((res) => {
+          this.$root.sessionInfo = {
+            loggedIn: false
+          };
+        })
+        .catch((err) => console.log('Failed to logout: ', err));
+    },
+    checkSession  () {
+      axios
+        .get(
+          `http://www.raviole.cerberus-heuristics.com/uac/session`, {withCredentials: true, credentials: 'include'}
+        )
+        .then((res) => {
+          console.log('setting session state');
+          if (this.$root.sessionInfo === null) {
+            console.log('setting first time');
+            this.$root.sessionInfo = res.data;
+          } else {
+            if (this.$root.sessionInfo.loggedIn !== res.data.loggedIn) {
+              this.$root.sessionInfo = res.data;
+              console.log('small change');
+            } else {
+              console.log('no change');
+            }
+          }
+        })
+        .catch((err) => console.log('Cannot connect to server to check session'));
+    }
+  }
 };
 </script>
 
@@ -75,6 +145,10 @@ export default {
   text-decoration: none !important;
   text-decoration-color: #B29A30 !important;
   background-image: none !important;
+}
+
+.header__login-info * {
+  margin: 5px;
 }
 
 /* Add Fancy Font */

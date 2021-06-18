@@ -14,6 +14,13 @@ app.use(allowCrossDomain)
 // Use body-parser to parse the body af a request
 let bodyParser = require("body-parser");
 app.use(bodyParser.json());
+app.use(session({
+  secret: '136c67657614311f32238751044a0a3c0294f2a521e573afa8e496992d3786ba', // This is a personal project, so I'm not concerned about the secret being visibla at this point!
+  name: 'sessionId',
+  resave: false,
+  saveUninitialized: false
+}));
+
 
 // Parse args for process
 let p_args = process.argv.slice(2);
@@ -55,6 +62,15 @@ MongoClient.connect(
         color_disabled
       );
       app.use("/userdata", route_userdata);
+
+      // Handle Routing for user access
+      const route_uac = require("./routes/uac")(
+        client,
+        log_requests,
+        log_errors,
+        color_disabled
+      );
+      app.use("/uac", route_uac);
 
       // Indicate if the router has started successfully
       app.listen(3000, () => {
