@@ -1,34 +1,40 @@
 <template>
   <div id="login" class="login__page__container">
-    <form v-if="!this.isSignup" method="post" @submit.prevent="handleSubmit" class="login__page__box">
-      <input class="login__page__input" type="text" placeholder="Enter Username" name="username" v-model="user.username" required>
-      <div class="anchor">
+    <!-- Login Sub-View -->
+    <form v-if="!this.isSignup" method="post" @submit.prevent="handleLogin" class="login__page__box">
+      <input ref="login-input-username" class="login__page__input" type="text" placeholder="Enter Username" name="username" v-model="user.username" required>
+      <span ref="login-warn-username" class="login__page__warn-text hidden">Username or password is incorrect</span>
+      <div class="anchor login__page__input__margin">
         <input class="login__page__input" :type="viewPassword ? 'text' : 'password'" placeholder="Enter Password" name="password" v-model="user.password" required>
-        <v-icon v-if="!viewPassword" @click="viewPassword=true" class="signup__page__input__icon">mdi-eye-off</v-icon>
-        <v-icon v-else @click="viewPassword=!viewPassword" class="signup__page__input__icon">mdi-eye</v-icon>
+        <v-icon v-if="!viewPassword" @click="viewPassword=true" class="login__page__input__icon">mdi-eye-off</v-icon>
+        <v-icon v-else @click="viewPassword=!viewPassword" class="login__page__input__icon">mdi-eye</v-icon>
       </div>
       <button class="login__page__button" type="submit">Login</button>
 
+      <!-- Swap Sub-view -->
       <div class="login__page__change-view login__page__change-view--1">
         <span>Don't have an account yet?</span>
         <span @click="isSignup=!isSignup">Sign Up!</span>
       </div>
     </form>
-    <form v-else method="post" @submit.prevent="handleSubmit" class="login__page__box">
-      <input ref="signup-input-username" class="signup__page__input" type="text" placeholder="Enter Username" name="username" v-model="user.username" required>
-      <span ref="signup-warn-username" class="signup__page__warn-text hidden">Username is already in use</span>
-      <input ref="signup-input-email" class="signup__page__input" type="text" placeholder="Enter Email" name="email" v-model="user.email" @blur="checkValidEmail" required>
-      <span ref="signup-warn-email" class="signup__page__warn-text hidden">Email is invalid</span>
+
+    <!-- Signup Sub-View -->
+    <form v-else method="post" @submit.prevent="handleSignup" class="login__page__box">
+      <input ref="signup-input-username" class="login__page__input" type="text" placeholder="Enter Username" name="username" v-model="user.username" required>
+      <span ref="signup-warn-username" class="login__page__warn-text hidden">Username is already in use</span>
+      <input ref="signup-input-email" class="login__page__input" type="text" placeholder="Enter Email" name="email" v-model="user.email" @blur="checkValidEmail" required>
+      <span ref="signup-warn-email" class="login__page__warn-text hidden">Email is invalid</span>
       <div class="anchor">
-        <input ref="signup-input-pass" class="signup__page__input" :type="viewPassword ? 'text' : 'password'" placeholder="Enter Password" name="password" v-model="user.password" @blur="checkValidPassword" required>
-        <v-icon v-if="!viewPassword" @click="viewPassword=true" class="signup__page__input__icon">mdi-eye-off</v-icon>
-        <v-icon v-else @click="viewPassword=!viewPassword" class="signup__page__input__icon">mdi-eye</v-icon>
+        <input ref="signup-input-pass" class="login__page__input" :type="viewPassword ? 'text' : 'password'" placeholder="Enter Password" name="password" v-model="user.password" @blur="checkValidPassword" required>
+        <v-icon v-if="!viewPassword" @click="viewPassword=true" class="login__page__input__icon">mdi-eye-off</v-icon>
+        <v-icon v-else @click="viewPassword=!viewPassword" class="login__page__input__icon">mdi-eye</v-icon>
       </div>
-      <span ref="signup-warn-pass" class="signup__page__warn-text hidden">Password must be at least 8 characters long</span>
-      <input ref="signup-input-pass2" class="signup__page__input" :type="viewPassword ? 'text' : 'password'" placeholder="Re-enter Password" name="password2" v-model="user.password2" @blur="checkEqualPasswords" required>
-      <span ref="signup-warn-pass2" class="signup__page__warn-text hidden">Passwords do not match</span>
+      <span ref="signup-warn-pass" class="login__page__warn-text hidden">Password must be at least 8 characters long</span>
+      <input ref="signup-input-pass2" class="login__page__input" :type="viewPassword ? 'text' : 'password'" placeholder="Re-enter Password" name="password2" v-model="user.password2" @blur="checkEqualPasswords" required>
+      <span ref="signup-warn-pass2" class="login__page__warn-text hidden">Passwords do not match</span>
       <button class="login__page__button" type="submit">Sign Up</button>
       
+      <!-- Swap Sub-view -->
       <div class="login__page__change-view">
         <span>Already have an account?</span>
         <span @click="isSignup=!isSignup">Login Here!</span>
@@ -62,15 +68,33 @@ export default {
     }
   }),
   methods: {
-    handleSubmit() {
+    handleLogin() {
       axios
-        .post(`${this.services.url_uac}/login`, this.user, {withCredentials: true, credentials: 'include'})
+        .post(`${this.$options.services.url_uac}/login`, this.user, {withCredentials: true, credentials: 'include'})
         .then(res => {
           console.log(res)
           this.$root.sessionInfo = res.data;
           this.$router.push('/');
         })
-        .catch(err => console.log(err));
+        .catch(err => {
+          console.log(err)
+          this.setWarning("login-warn-username", "login-input-username");
+        });
+    },
+    handleSignup() {
+      axios
+        .post(`${this.$options.services.url_uac}/signup`, this.user, {withCredentials: true, credentials: 'include'})
+        .then(res => {
+          console.log(res)
+          // this.$root.sessionInfo = res.data;
+          // this.$router.push('/');
+        })
+        .catch(err => {
+          console.log(err)
+          const conflict = err.response.data.conflict;
+          const message = err.response.data.message;
+          this.setWarning("signup-warn-" + conflict, "signup-input-" + conflict, message);
+        });
     },
     checkValidEmail() {
       const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -106,14 +130,14 @@ export default {
     },
     setWarning(refWarn, refInput, text) {
       this.$refs[refWarn].classList.remove("hidden");
-      this.$refs[refInput].classList.add("signup__page__input--invalid");
+      this.$refs[refInput].classList.add("login__page__input--invalid");
       if (text) {
         this.$refs[refWarn].innerText = text;
       }
     },
     clearWarning(refWarn, refInput) {
       this.$refs[refWarn].classList.add("hidden");
-      this.$refs[refInput].classList.remove("signup__page__input--invalid");
+      this.$refs[refInput].classList.remove("login__page__input--invalid");
     },
   }
 };
@@ -139,34 +163,29 @@ export default {
   padding: 30px;
 }
 .login__page__input {
-
   width: 100%;
-  margin-bottom: 30px;
   padding: 5px;
   border: 1px solid #B29A30;
   border-radius: 5px;
 }
+.login__page__input__margin {
+  margin-bottom: 30px;
+}
 .login__page__input::placeholder {
   color: #B29A30; 
 }
-
-
-.signup__page__input {
-  @extend .login__page__input;
-  margin-bottom: 0px;
-}
-.signup__page__input--invalid {
+.login__page__input--invalid {
   border: red solid 2px;
   margin: -1px;
 }
 
-.signup__page__input__icon {
+.login__page__input__icon {
   position: absolute;
   height: 100%;
   right: 5px;
   cursor: pointer;
 }
-.signup__page__input__icon:after { // Remove default ripple
+.login__page__input__icon:after { // Remove default ripple
   opacity: 0 !important;
 }
 
@@ -192,7 +211,7 @@ export default {
   color: #B29A30;
   border: none;
 }
-.signup__page__warn-text {
+.login__page__warn-text {
   color: red;
   line-height: 20px;
   margin-bottom: 10px;
