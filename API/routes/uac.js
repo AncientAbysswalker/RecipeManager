@@ -2,6 +2,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
   const express = require("express");
   const router = express.Router();
   const mongo = require("mongodb");
+  const crypto = require("crypto");
 
   // Load logging helper
   const log = require("../helpers/logging")(
@@ -10,16 +11,20 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     color_disabled
   );
 
-  // Load query helpers
-  const qry = require("../helpers/query_helpers");
-
   // Load config
-  //const db_name = require("./db_config").db_name;
-  //const userdata_collection = require("./db_config").userdata_collection;
+  const db_name = require("./db_config").db_name;
+  const users_collection = require("./db_config").users_collection;
 
   // Set up MongoDB variables
-  //let db = client.db(db_name);
-  //let recipes = db.collection(userdata_collection);
+  let db = client.db(db_name);
+  let users = db.collection(users_collection);
+
+  // Common Functions
+  function getHashedPassword(password) {
+    const sha256 = crypto.createHash('sha256');
+    const hash = sha256.update(password).digest('base64');
+    return hash;
+  }
 
   // ExpressJS Router
   router
@@ -28,23 +33,68 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
       console.log(request.body)
       const username = request.body.username;
       const password = request.body.password;
+      const hashedPassword = getHashedPassword(password);
 
-      // logic to discern authorization
-      const userId = '3897804';
+      // Grab the stored user related to this username
+      users.findOne(
+        { username: username },
+        (err, result) => {
+          if (!err) {
+            // If response is null, respond 404
+            if (result === null) {
+              log.fail(
+                "POST",
+                request.originalUrl,
+                request.clf,
+                401,
+                "The requested user could not be found"
+              );
+              response.status(401).send({
+                status: 401,
+                message: "Invalid login",
+              });
+            } else {
+              // Valid password?
+              if (hashedPassword === result.password) {
+                log.success("POST", request.originalUrl, request.clf, 200);
 
-      request.session.username = username;
-      request.session.userId = userId;
-      request.session.loggedIn = true;
+                const userId = result._id;
+                request.session.username = username;
+                request.session.userId = userId;
+                request.session.loggedIn = true;
 
-      request.session.username = username;
-      request.session.userId = userId;
+                request.session.username = username;
+                request.session.userId = userId;
 
-      // Respond with session
-      let sessionInfo = {};
-      sessionInfo.loggedIn = true;
-      sessionInfo.username = username
-      sessionInfo.userId = userId;
-      response.json(sessionInfo);
+                // Respond with session
+                let sessionInfo = {};
+                sessionInfo.loggedIn = true;
+                sessionInfo.username = username
+                sessionInfo.userId = userId;
+                response.json(sessionInfo);
+              } else {
+                log.fail(
+                  "POST",
+                  request.originalUrl,
+                  request.clf,
+                  401,
+                  "An invalid password was used"
+                );
+                response.status(401).send({
+                  status: 401,
+                  message: "Invalid login",
+                });
+              }
+            }
+          } else {
+            log.fail("POST", request.originalUrl, request.clf, 500, err);
+            response.status(500).send({
+              status: 500,
+              message: "Internal database exception",
+            });
+          }
+        }
+      );
     })
 
     .post("/logout", (request, response) => {
