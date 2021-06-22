@@ -62,7 +62,7 @@
 import axios from "axios";
 
 // Enums
-
+const services = require("@/helpers/services");
 
 //import Header from "./components/layout/Header";
 export default {
@@ -70,11 +70,7 @@ export default {
   //components: {
   //  Header,
   //},
-  SessionStateEnum: {
-    LIMBO: 0,
-    LOGGED_OUT: 1,
-    LOGGED_IN: 2
-  },
+  services: services,
   data: () => ({
     test: false
   }),
@@ -97,7 +93,7 @@ export default {
     logoutSession() {
       axios
         .post(
-          `http://www.raviole.cerberus-heuristics.com/uac/logout`, {}, {withCredentials: true, credentials: 'include'}
+          `${this.$options.services.url_uac}/logout`, {}, {withCredentials: true, credentials: 'include'}
         )
         .then((res) => {
           this.$root.sessionInfo = {
@@ -109,7 +105,7 @@ export default {
     checkSession  () {
       axios
         .get(
-          `http://www.raviole.cerberus-heuristics.com/uac/session`, {withCredentials: true, credentials: 'include'}
+          `${this.$options.services.url_uac}/session`, {withCredentials: true, credentials: 'include'}
         )
         .then((res) => {
           console.log('setting session state');
