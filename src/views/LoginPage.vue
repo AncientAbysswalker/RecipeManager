@@ -1,9 +1,38 @@
 <template>
-  <div id="login">
-    <form method="post" @submit.prevent="handleSubmit">
-      <input type="text" placeholder="Enter Username" name="username" v-model="user.username" required>
-      <input type="password" placeholder="Enter Password" name="password" v-model="user.password" required>
-      <button type="submit">Login</button>
+  <div id="login" class="login__page__container">
+    <form v-if="!this.isSignup" method="post" @submit.prevent="handleSubmit" class="login__page__box">
+      <input class="login__page__input" type="text" placeholder="Enter Username" name="username" v-model="user.username" required>
+      <div class="anchor">
+        <input class="login__page__input" :type="viewPassword ? 'text' : 'password'" placeholder="Enter Password" name="password" v-model="user.password" required>
+        <v-icon v-if="!viewPassword" @click="viewPassword=true" class="signup__page__input__icon">mdi-eye-off</v-icon>
+        <v-icon v-else @click="viewPassword=!viewPassword" class="signup__page__input__icon">mdi-eye</v-icon>
+      </div>
+      <button class="login__page__button" type="submit">Login</button>
+
+      <div class="login__page__change-view login__page__change-view--1">
+        <span>Don't have an account yet?</span>
+        <span @click="isSignup=!isSignup">Sign Up!</span>
+      </div>
+    </form>
+    <form v-else method="post" @submit.prevent="handleSubmit" class="login__page__box">
+      <input ref="signup-input-username" class="signup__page__input" type="text" placeholder="Enter Username" name="username" v-model="user.username" required>
+      <span ref="signup-warn-username" class="signup__page__warn-text hidden">Username is already in use</span>
+      <input ref="signup-input-email" class="signup__page__input" type="text" placeholder="Enter Email" name="email" v-model="user.email" @blur="checkValidEmail" required>
+      <span ref="signup-warn-email" class="signup__page__warn-text hidden">Email is invalid</span>
+      <div class="anchor">
+        <input ref="signup-input-pass" class="signup__page__input" :type="viewPassword ? 'text' : 'password'" placeholder="Enter Password" name="password" v-model="user.password" @blur="checkValidPassword" required>
+        <v-icon v-if="!viewPassword" @click="viewPassword=true" class="signup__page__input__icon">mdi-eye-off</v-icon>
+        <v-icon v-else @click="viewPassword=!viewPassword" class="signup__page__input__icon">mdi-eye</v-icon>
+      </div>
+      <span ref="signup-warn-pass" class="signup__page__warn-text hidden">Password must be at least 8 characters long</span>
+      <input ref="signup-input-pass2" class="signup__page__input" :type="viewPassword ? 'text' : 'password'" placeholder="Re-enter Password" name="password2" v-model="user.password2" @blur="checkEqualPasswords" required>
+      <span ref="signup-warn-pass2" class="signup__page__warn-text hidden">Passwords do not match</span>
+      <button class="login__page__button" type="submit">Sign Up</button>
+      
+      <div class="login__page__change-view">
+        <span>Already have an account?</span>
+        <span @click="isSignup=!isSignup">Login Here!</span>
+      </div>
     </form>   
   </div>
 </template>
@@ -13,23 +42,29 @@ import RecipesPane from "../components/HomePage/RecipesPane";
 import SearchBar from "../components/HomePage/SearchBar";
 import axios from "axios";
 
+const services = require("@/helpers/services");
+
 export default {
   name: "HomePage",
   components: {
     RecipesPane,
     SearchBar
   },
+  services: services,
   data: () => ({
+    isSignup: false,
+    viewPassword: false,
     user: {
       username: '',
-      password: ''
+      password: '',
+      password2: '',
+      email: ''
     }
   }),
   methods: {
     handleSubmit() {
-      console.log(9)
       axios
-        .post(`http://www.raviole.cerberus-heuristics.com/uac/login`, this.user, {withCredentials: true, credentials: 'include'})
+        .post(`${this.services.url_uac}/login`, this.user, {withCredentials: true, credentials: 'include'})
         .then(res => {
           console.log(res)
           this.$root.sessionInfo = res.data;
@@ -37,13 +72,135 @@ export default {
         })
         .catch(err => console.log(err));
     },
+    checkValidEmail() {
+      const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+      // Make email all lower case
+      this.user.email = this.user.email.toLocaleLowerCase().trim();
+
+      if (re.test(this.user.email) || this.user.email.length === 0) {
+        this.clearWarning("signup-warn-email", "signup-input-email");
+      } else {
+        this.setWarning("signup-warn-email", "signup-input-email", "Email is invalid");
+      }
+    },
+    checkValidPassword() {
+      // Password must be 8 char or longer per NIST standards
+      if (this.user.password.length < 8 && this.user.password.length > 0) {
+        this.setWarning("signup-warn-pass", "signup-input-pass");
+      } else {
+        this.clearWarning("signup-warn-pass", "signup-input-pass");
+      }
+      
+      // Recheck password equality
+      this.checkEqualPasswords();
+    },
+    checkEqualPasswords() {
+      if (this.user.password.length > 0 && this.user.password2.length > 0) {
+        if (this.user.password !== this.user.password2) {
+          this.setWarning("signup-warn-pass2", "signup-input-pass2");
+        } else {
+          this.clearWarning("signup-warn-pass2", "signup-input-pass2");
+        }
+      }
+    },
+    setWarning(refWarn, refInput, text) {
+      this.$refs[refWarn].classList.remove("hidden");
+      this.$refs[refInput].classList.add("signup__page__input--invalid");
+      if (text) {
+        this.$refs[refWarn].innerText = text;
+      }
+    },
+    clearWarning(refWarn, refInput) {
+      this.$refs[refWarn].classList.add("hidden");
+      this.$refs[refInput].classList.remove("signup__page__input--invalid");
+    },
   }
 };
 </script>
 
-<style>
-/* 
-  font-family: Arial, Helvetica, sans-serif;
-  line-height: 1.4;
-}*/
+<style scoped lang="scss">
+/* Global and container */
+.login__page__container {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login__page__box {
+  display: flex;
+  flex-direction: column;
+  border: #B29A30 solid 1px;
+  border-radius: 5px;
+  width: 50%;
+  height: 390px;
+  padding: 30px;
+}
+.login__page__input {
+
+  width: 100%;
+  margin-bottom: 30px;
+  padding: 5px;
+  border: 1px solid #B29A30;
+  border-radius: 5px;
+}
+.login__page__input::placeholder {
+  color: #B29A30; 
+}
+
+
+.signup__page__input {
+  @extend .login__page__input;
+  margin-bottom: 0px;
+}
+.signup__page__input--invalid {
+  border: red solid 2px;
+  margin: -1px;
+}
+
+.signup__page__input__icon {
+  position: absolute;
+  height: 100%;
+  right: 5px;
+  cursor: pointer;
+}
+.signup__page__input__icon:after { // Remove default ripple
+  opacity: 0 !important;
+}
+
+.login__page__change-view {
+  width: 100%;
+}
+.login__page__change-view *:first-child {
+  margin-right: 10px;
+}
+.login__page__change-view *:nth-child(2) {
+  text-decoration: underline;
+  cursor: pointer;
+}
+.login__page__change-view--1 {
+  margin-top: 130px;
+}
+.login__page__button {
+  width: 100%;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  padding: 5px;
+  background-color: #FFF1B3;
+  color: #B29A30;
+  border: none;
+}
+.signup__page__warn-text {
+  color: red;
+  line-height: 20px;
+  margin-bottom: 10px;
+}
+.hidden {
+  visibility: hidden;
+}
+.anchor {
+  position: relative;
+}
 </style>
