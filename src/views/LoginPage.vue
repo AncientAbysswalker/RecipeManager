@@ -86,8 +86,10 @@ export default {
         .post(`${this.$options.services.url_uac}/signup`, this.user, {withCredentials: true, credentials: 'include'})
         .then(res => {
           console.log(res)
-          // this.$root.sessionInfo = res.data;
-          // this.$router.push('/');
+          if (res.data.loggedIn) {
+            this.$root.sessionInfo = res.data;
+            this.$router.push('/');
+          }
         })
         .catch(err => {
           console.log(err)

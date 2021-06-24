@@ -63,9 +63,6 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                 request.session.userId = userId;
                 request.session.loggedIn = true;
 
-                request.session.username = username;
-                request.session.userId = userId;
-
                 // Respond with session
                 let sessionInfo = {};
                 sessionInfo.loggedIn = true;
@@ -162,40 +159,36 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                       });
                     } else {
                       // Valid password?
-                      // if (hashedPassword === result.password) {
-                      //   log.success("POST", request.originalUrl, request.clf, 200);
+                      let newUser = {
+                        username: username,
+                        password: hashedPassword,
+                        email: email
+                      };
 
-                      //   const userId = result._id;
-                      //   request.session.username = username;
-                      //   request.session.userId = userId;
-                      //   request.session.loggedIn = true;
+                      // Insert one recipe
+                      users.insertOne(newUser, (err, result) => {
+                        if (!err) {
+                          log.success("POST", request.originalUrl, request.clf, 200);
 
-                      //   request.session.username = username;
-                      //   request.session.userId = userId;
+                          // Respond with session
+                          const userId = result._id;
+                          request.session.username = username;
+                          request.session.userId = userId;
+                          request.session.loggedIn = true;
 
-                      //   // Respond with session
-                      //   let sessionInfo = {};
-                      //   sessionInfo.loggedIn = true;
-                      //   sessionInfo.username = username
-                      //   sessionInfo.userId = userId;
-                      //   response.json(sessionInfo);
-                      response.status(200).send({
-                        status: 200,
-                        message: "YYYAAAAAA",
+                          let sessionInfo = {};
+                          sessionInfo.loggedIn = true;
+                          sessionInfo.username = username
+                          sessionInfo.userId = userId;
+                          response.json(sessionInfo);
+                        } else {
+                          log.fail("POST", request.originalUrl, request.clf, 500, err);
+                          response.status(500).send({
+                            status: 500,
+                            message: "Internal database exception",
+                          });
+                        }
                       });
-                      // } else {
-                      //   log.fail(
-                      //     "POST",
-                      //     request.originalUrl,
-                      //     request.clf,
-                      //     401,
-                      //     "An invalid password was used"
-                      //   );
-                      //   response.status(401).send({
-                      //     status: 401,
-                      //     message: "Invalid login",
-                      //   });
-                      // }
                     }
                   } else {
                     log.fail("POST", request.originalUrl, request.clf, 500, err);
