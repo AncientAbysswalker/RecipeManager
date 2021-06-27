@@ -20,7 +20,7 @@
 
     <!-- Signup Sub-View -->
     <form v-else method="post" @submit.prevent="handleSignup" class="login__page__box">
-      <input ref="signup-input-username" class="login__page__input" type="text" placeholder="Enter Username" name="username" v-model="user.username" required>
+      <input ref="signup-input-username" class="login__page__input" type="text" placeholder="Enter Username" name="username" v-model="user.username" @change="checkValidUsername" required>
       <span ref="signup-warn-username" class="login__page__warn-text hidden">Username is already in use</span>
       <input ref="signup-input-email" class="login__page__input" type="text" placeholder="Enter Email" name="email" v-model="user.email" @blur="checkValidEmail" required>
       <span ref="signup-warn-email" class="login__page__warn-text hidden">Email is invalid</span>
@@ -78,10 +78,15 @@ export default {
         })
         .catch(err => {
           console.log(err)
-          this.setWarning("login-warn-username", "login-input-username");
+          this.setWarning("login-warn-username", "login-input-username", "Username or password is incorrect");
+          this.setWarning("login-warn-password", "login-input-password", "");
         });
     },
     handleSignup() {
+      if (!this.fieldAreNotFlagged()) {
+        return;
+      }
+
       axios
         .post(`${this.$options.services.url_uac}/signup`, this.user, {withCredentials: true, credentials: 'include'})
         .then(res => {
@@ -97,6 +102,17 @@ export default {
           const message = err.response.data.message;
           this.setWarning("signup-warn-" + conflict, "signup-input-" + conflict, message);
         });
+    },
+    fieldAreNotFlagged() {
+      return (
+        this.$refs["signup-warn-username"].classList.contains("hidden") && 
+        this.$refs["signup-warn-pass"].classList.contains("hidden") && 
+        this.$refs["signup-warn-pass2"].classList.contains("hidden") && 
+        this.$refs["signup-warn-email"].classList.contains("hidden")
+      );
+    },
+    checkValidUsername() {
+      this.clearWarning("signup-warn-username", "signup-input-username");
     },
     checkValidEmail() {
       const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;

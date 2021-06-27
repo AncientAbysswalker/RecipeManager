@@ -108,9 +108,10 @@
                     <!-- <h1 class="text-fancy">{{ this.fields.name }}</h1> -->
 
                     <!-- Top Edit-Control Container -->
-                    <div class="edit__mode__top">
+                    <div v-if="this.$root.sessionInfo && this.$root.sessionInfo.loggedIn" class="edit__mode__top">
                         <v-icon class="edit__mode__top--item button__no__ripple" @click="printListState">mdi-cog</v-icon>
-                        <v-icon v-if="!is_edit_mode" class="edit__mode__top--item button__no__ripple" @click="()=>{this.is_edit_mode=true}">mdi-square-edit-outline</v-icon>
+                        <v-icon v-if="!is_edit_mode && (tempMyRecipe || (this.fields.ownerId && this.$root.sessionInfo.userId === this.fields.ownerId))" class="edit__mode__top--item button__no__ripple" @click="()=>{this.is_edit_mode=true}">mdi-square-edit-outline</v-icon>
+                        <v-icon v-else-if="!is_edit_mode && (this.$root.sessionInfo.userId !== this.fields.ownerId || !this.fields.ownerId)" class="edit__mode__top--item button__no__ripple" @click="()=>{this.is_edit_mode=true; this.fields._id=null}">mdi-content-copy</v-icon>
                         <v-icon v-else class="edit__mode__top--item button__no__ripple" @click="cleanAndSaveRecipeChanges">mdi-content-save</v-icon>
                     </div>
                 </div>
@@ -257,7 +258,8 @@ export default {
         LOCAL_BUT_UPLOADED: 2
     },
     InstructionTypeEnum: InstructionTypeEnum,
-    data: () => ({        
+    data: () => ({
+        tempMyRecipe: false,        
         fields: {
             name: "",
             time_active: null,
@@ -361,7 +363,7 @@ export default {
                 // If recipe exists [PUT] to DB, else [PUSH] to DB
                 if (this.fields._id !== null) {
                     axios
-                    .put(`${this.$options.services.url_api}/${this.$route.params.id}`, this.fields)
+                    .put(`${this.$options.services.url_api}/${this.$route.params.id}`, this.fields, {withCredentials: true})
                     .then(res => {
                         console.log(res);
                         //end 'loading' here
@@ -372,11 +374,12 @@ export default {
                     .catch(err => console.log(err));
                 } else {
                     axios
-                    .post(`${this.$options.services.url_api}/`, this.fields)
+                    .post(`${this.$options.services.url_api}/`, this.fields, {withCredentials: true})
                     .then(res => {
                         console.log(res);
                         //end 'loading' here
 
+                        this.tempMyRecipe = true;
                         this.is_edit_mode = false;
                         this.is_loading = false;
                     })
