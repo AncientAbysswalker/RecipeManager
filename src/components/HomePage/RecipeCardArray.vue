@@ -1,11 +1,14 @@
 <template>
   <div>
     <div class="cards cards--column">
-      <div v-for="(item, index) in filteredItems" :key="index">
+      <div v-for="(item, index) in filteredItems" :key="index" class="anchor">
         <RecipeCard
           class="card"
           :item="item"
+          :disableRoute="disableRoute"
+          @activate-card="passCardActivation"
         />
+        <span class="cards--select-box">{{ activeIds.includes(item._id) ? '✓' : '' }}</span>
       </div>
     </div>
   </div>
@@ -61,11 +64,37 @@ export default {
     jobs: {
       type: Array,
       default: []
-    }
+    },
+    activeIds: {
+      type: Array,
+      default: function () {
+        return []
+      }
+    },
+    activeCategory: {
+      type: Boolean,
+      default: false
+    },
+    disableRoute: {
+      type: Boolean,
+      default: false
+    },
   },
+  data: () => ({ 
+    activatedCards: []
+  }),
   computed: {
     filteredItems() {
       return this.jobs.filter((item) => (agnosticStringIncludes(item.name, this.filterString) && agnosticTagsIncludedInStringArray(item.tags, this.filterTags)));
+    }
+  },
+  methods: {
+    passCardActivation(recipeId) {
+      console.log(9)
+      this.$emit('activate-card', recipeId)
+    },
+    processCardActivation(recipeId) {
+      this.activatedCards.push(recipeId);
     }
   }
 };
@@ -103,6 +132,29 @@ export default {
   .cards--column {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
+}
+
+.anchor {
+  position: relative;
+}
+.cards--select-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15%;
+  font-size: 200%; 
+  line-height: 100%;
+  font-weight: bold;
+  background-color: white;
+  position: absolute; 
+  bottom:0px; 
+  right:0px;
+  border: 2px #e0e0e0 solid;
+}
+.cards--select-box:before {
+	content: "";
+	float: left;
+	padding-top: 100%; 	/* initial ratio of 1:1*/
 }
 
 </style>

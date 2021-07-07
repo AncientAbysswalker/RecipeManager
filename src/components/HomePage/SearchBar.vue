@@ -15,7 +15,11 @@
               {{ tag }}
           </option>
         </select>
-        <router-link to="/recipe/new" class="searchbar__button--add searchbar__element">Add New Recipe</router-link>
+        
+        <div class="searchbar__button--add">
+          <router-link to="/recipe/new" class="searchbar__element">Add New Recipe</router-link>
+          <span class="searchbar__element">Manage Collections</span>
+        </div>
     </div>
     <div class="searchbar__tags__container">
       <div tabindex="0" class="searchbar__tag" v-for="(tag, index) in selectedTags" :key="index + tag" @click="showTagClose" @blur="hideTagClose">{{tag}}<DeleteTagButton class="hide searchbar__tag--deletor" @delete-component="() => $emit('deleteSelectedTagAtIndex', index)"></DeleteTagButton></div>

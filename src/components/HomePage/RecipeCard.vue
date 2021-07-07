@@ -1,6 +1,5 @@
 <template>
-  <article class="card">
-    <router-link :to="'/recipe/' + this.item._id">
+  <article class="card" @click="handleRouteOrSelect">
       <div class="card-header" v-if="this.item.name">
         <span>{{ this.item.name }}</span>
       </div>
@@ -20,7 +19,6 @@
         />
       </div>
       <div class="card-footer"></div>
-    </router-link>
   </article>
 </template>
 
@@ -30,9 +28,25 @@ const services = require("@/helpers/services");
 
 export default {
   name: "RecipeCard",
-  props: ["todo", "item", "record"],
+  props: {
+    item: {
+      type: Object,
+      default: {}
+    },
+    disableRoute: {
+      type: Boolean,
+      default: false
+    },
+  },
   data: () => ({ services: services, broken_image: false }),
   methods: {
+    handleRouteOrSelect() {
+      if (!this.disableRoute) {
+        this.$router.push('/recipe/' + this.item._id);
+      } else {
+        this.$emit('activate-card', this.item._id);
+      }
+    },
     setBrokenImage() {
       this.broken_image = true;
     },

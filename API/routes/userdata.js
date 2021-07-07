@@ -23,128 +23,29 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
 
   // ExpressJS Router
   router
-    // .post("/", (request, response) => {
-    //   // Log request and save time of request
-    //   let time_req = log.req_post(request.originalUrl);
+    // [GET] the collections data for the current session
+    .get("/collections", log.req_get, (request, response) => {
 
-    //   try {
-    //     // Build new entry from request body. Any fields not included will become null
-    //     let new_entry = {
-    //       name: request.body.name,
-    //       time_active: request.body.time_active,
-    //       time_total: request.body.time_total,
-    //       ingredients: request.body.ingredients,
-    //       instructions: request.body.instructions,
-    //       images: request.body.images,
-    //       tags: request.body.tags,
-    //       yield: request.body.yield
-    //     };
-
-    //     // Insert one recipe
-    //     recipes.insertOne(new_entry, (err, result) => {
-    //       if (!err) {
-    //         log.success("POST", request.originalUrl, time_req, 201);
-    //         response.status(201).send(result.ops[0]);
-    //       } else {
-    //         log.fail("POST", request.originalUrl, time_req, 500, err);
-    //         response.status(500).send({
-    //           status: 500,
-    //           message: "Internal database exception",
-    //         });
-    //       }
-    //     });
-    //   } catch (err) {
-    //     log.fail("POST", request.originalUrl, time_req, 500, err);
-    //     response.status(500).send({
-    //       status: 500,
-    //       message: "Internal database exception",
-    //     });
-    //   }
-    // })
-
-    // // [GET] the data for all recipes, with optional filtering
-    // .get("/", (request, response) => {
-    //   // Log request and save time of request
-    //   let time_req = log.req_get(request.originalUrl);
-
-    //   try {
-    //     // Ensure that the fields will always be a list
-    //     let fields = qry.paramToList(request.query.fields);
-
-    //     // Query mongo db
-    //     recipes
-    //       .find()
-    //       .project(fields.reduce((a, b) => ((a[b] = 1), a), {}))
-    //       .toArray((err, result_raw) => {
-    //         // Strip result of any entries only containing _id
-    //         let result = qry.filterEmpty(result_raw, fields.includes("_id"));
-
-    //         if (!err) {
-    //           if (result.length !== 0) {
-    //             log.success("GET", request.originalUrl, time_req, 200);
-    //             response.json(result);
-    //           } else {
-    //             log.fail(
-    //               "GET",
-    //               request.originalUrl,
-    //               time_req,
-    //               404,
-    //               "The requested resource could not be found"
-    //             );
-    //             response.status(404).send({
-    //               status: 404,
-    //               message: "The requested resource could not be found",
-    //             });
-    //           }
-    //         } else {
-    //           log.fail("GET", request.originalUrl, time_req, 500, err);
-    //           response.status(500).send({
-    //             status: 500,
-    //             message: "Internal database exception",
-    //           });
-    //         }
-    //       });
-    //   } catch (err) {
-    //     log.fail("GET", request.originalUrl, time_req, 500, err);
-    //     response.status(500).send({
-    //       status: 500,
-    //       message: "Internal database exception",
-    //     });
-    //   }
-    // })
-
-    // [GET] the data for one recipe using its db id, with optional filtering
-    .get("/categories/:user", log.req_get, (request, response) => {
-      // First confirm that the id request is OK
-      try {
-        // Get the id in the appropriate format
-        //let id = new mongo.ObjectID(request.params.id);
-        console.log(request.params.user);
+      // Logged in?
+      const loggedIn = request.session.loggedIn;
+      const userId = request.session.userId;
+      if (loggedIn && userId) {
         try {
-          // Ensure that the fields will always be a list
-          //let fields = qry.paramToList(request.query.fields);
-
           recipes.findOne(
-            { user: request.params.user },
-            //{ projection: fields.reduce((a, b) => ((a[b] = 1), a), {}) },
+            { userId: userId },
             (err, result) => {
               if (!err) {
                 // If response is null or only the _id, respond 404
-                if (result === null || Object.keys(result).length === 1) {
-                  log.fail(
-                    "GET",
-                    request.originalUrl,
-                    request.clf,
-                    404,
-                    "The requested resource could not be found"
-                  );
-                  response.status(404).send({
-                    status: 404,
-                    message: "The requested resource could not be found",
+                if (result === null) {
+                  log.success("GET", request.originalUrl, request.clf, 200);
+                  response.json({
+                    userCollections: {}
                   });
                 } else {
                   log.success("GET", request.originalUrl, request.clf, 200);
-                  response.json(result);
+                  response.json({
+                    userCollections: result.userCollections
+                  });
                 }
               } else {
                 log.fail("GET", request.originalUrl, request.clf, 500, err);
@@ -162,102 +63,13 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             message: "Internal database exception",
           });
         }
-
-        // If the wrong number of bytes is provided
-      } catch {
-        log.fail(
-          "GET",
-          request.originalUrl,
-          request.clf,
-          400,
-          "The id provided must be a single string of 12 bytes or 24 hex characters"
-        );
-        response.status(400).send({
-          status: 400,
-          message:
-            "The id provided must be a single string of 12 bytes or 24 hex characters",
+      } else {
+        log.success("GET", request.originalUrl, request.clf, 200);
+        response.json({
+          userCollections: {}
         });
       }
-    })
-
-
-  // // [PUT] the data for one recipe using its db id, with optional filtering
-  // .put("/:id", (request, response) => {
-  //   // Log request and save time of request
-  //   let time_req = log.req_put(request.originalUrl);
-
-  //   // First confirm that the id request is OK
-  //   try {
-  //     // Build new entry from request body. Any fields not included will become null
-  //     let revised_entry = {
-  //       name: request.body.name,
-  //       time_active: request.body.time_active,
-  //       time_total: request.body.time_total,
-  //       ingredients: request.body.ingredients,
-  //       instructions: request.body.instructions,
-  //       images: request.body.images,
-  //       tags: request.body.tags,
-  //       yield: request.body.yield
-  //     };
-
-  //     // Get the id in the appropriate format
-  //     let id = new mongo.ObjectID(request.params.id);
-  //     try {
-  //       recipes.replaceOne(
-  //         { _id: id },
-  //         revised_entry,
-  //         (err, result) => {
-  //           if (!err) {
-  //             // If response is null, no resource is found
-  //             if (result.modifiedCount === 0) {
-  //               log.fail(
-  //                 "PUT",
-  //                 request.originalUrl,
-  //                 time_req,
-  //                 404,
-  //                 "The requested resource could not be found"
-  //               );
-  //               response.status(404).send({
-  //                 status: 404,
-  //                 message: "The requested resource could not be found",
-  //               });
-  //             } else {
-  //               log.success("PUT", request.originalUrl, time_req, 200);
-  //               response.json(result);
-  //             }
-  //           } else {
-  //             log.fail("PUT", request.originalUrl, time_req, 500, err);
-  //             response.status(500).send({
-  //               status: 500,
-  //               message: "Internal database exception",
-  //             });
-  //           }
-  //         }
-  //       );
-  //     } catch (err) {
-  //       log.fail("PUT", request.originalUrl, time_req, 500, err);
-  //       response.status(500).send({
-  //         status: 500,
-  //         message: "Internal database exception",
-  //       });
-  //     }
-
-  //     // If the wrong number of bytes is provided
-  //   } catch {
-  //     log.fail(
-  //       "PUT",
-  //       request.originalUrl,
-  //       time_req,
-  //       400,
-  //       "The id provided must be a single string of 12 bytes or 24 hex characters"
-  //     );
-  //     response.status(400).send({
-  //       status: 400,
-  //       message:
-  //         "The id provided must be a single string of 12 bytes or 24 hex characters",
-  //     });
-  //   }
-  // });
+    });
 
   return router;
 };

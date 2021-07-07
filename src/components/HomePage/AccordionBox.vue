@@ -3,6 +3,7 @@
     <div class="accordion__header" @click="toggleAccordion">
       <span class="accordion__label">{{this.label}}</span>
       <span class="accordion__line"></span>
+      <v-icon class="accordion__icons" v-for="(action, index) in manageActions" @click="(evt) => { evt.preventDefault(); evt.stopPropagation(); $emit(action.emitter) }">{{ action.icon }}</v-icon>
       <span class="accordion__carret" ref="accordionCarret">▼</span>
     </div>
     <div class="accordion__container" ref="accordionContainer">
@@ -22,6 +23,12 @@ export default {
     label: {
       type: String,
       default: 'wersg'
+    },
+    manageActions: {
+      type: Array,
+      default: function () {
+        return []
+      },
     },
   },
   data: () => ({
@@ -77,7 +84,13 @@ export default {
   width: 100%;
   border-top: 2px solid grey;
 }
+.accordion__icons {
+  line-height: 0.8em;
+  margin-left: 10px;
+  margin-right: 10px;
+}
 .accordion__carret {
+  color: grey;
   line-height: 0.8em;
   -webkit-user-select: none; /* Safari */        
   -moz-user-select: none; /* Firefox */
