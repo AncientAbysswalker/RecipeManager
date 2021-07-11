@@ -3,7 +3,7 @@
     <div class="accordion__header" @click="toggleAccordion">
       <span class="accordion__label">{{this.label}}</span>
       <span class="accordion__line"></span>
-      <v-icon class="accordion__icons" v-for="(action, index) in manageActions" @click="(evt) => { evt.preventDefault(); evt.stopPropagation(); $emit(action.emitter) }">{{ action.icon }}</v-icon>
+      <slot name="icons"></slot>
       <span class="accordion__carret" ref="accordionCarret">▼</span>
     </div>
     <div class="accordion__container" ref="accordionContainer">
@@ -84,10 +84,13 @@ export default {
   width: 100%;
   border-top: 2px solid grey;
 }
-.accordion__icons {
+.accordion__icon {
   line-height: 0.8em;
   margin-left: 10px;
   margin-right: 10px;
+}
+.accordion__icon:after { /* Remove default ripple */
+  opacity: 0 !important;
 }
 .accordion__carret {
   color: grey;

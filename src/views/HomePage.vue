@@ -3,22 +3,30 @@
     <SearchBar 
       :availableTags = "availableTags"
       :selectedTags = "selectedTags"
+      :editCollections = "editCollections"
       @freeFilter = "updateFreeFilter" 
       @addToSelectedTags = "addToSelectedTags" 
       @deleteSelectedTagAtIndex = "deleteSelectedTagAtIndex"
+      @manageCollections = "manageCollections"
+      @saveCollections = "saveCollections"
     />
     <RecipesPane 
       :filterString="filterString"
       :filterTags="selectedTags"
+      :editCollections = "editCollections"
       @updateAvailableTags = "updateAvailableTags" 
+      ref="recipePane"
     />
   </div>
 </template>
 
 <script>
+// Modules
+const services = require("@/helpers/services");
+import axios from "axios";
+
 import RecipesPane from "../components/HomePage/RecipesPane";
 import SearchBar from "../components/HomePage/SearchBar";
-import axios from "axios";
 
 export default {
   name: "HomePage",
@@ -27,9 +35,11 @@ export default {
     SearchBar
   },
   data: () => ({
+    services: services,
     filterString: '',
     availableTags: [],
-    selectedTags: []
+    selectedTags: [],
+    editCollections: false
   }),
   methods: {
     updateFreeFilter(updatedFilterString) {
@@ -45,6 +55,16 @@ export default {
     },
     updateAvailableTags(availableTags) {
       this.availableTags = availableTags;
+    },
+    manageCollections() {
+      this.editCollections = true
+    },
+    saveCollections() {
+      // Submit changes to server
+      this.$refs.recipePane.submitCollections()
+        .then(()=> {
+          this.editCollections = false;
+        });
     },
   }
 };

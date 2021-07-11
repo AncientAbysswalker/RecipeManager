@@ -8,7 +8,7 @@
           :disableRoute="disableRoute"
           @activate-card="passCardActivation"
         />
-        <span class="cards--select-box">{{ activeIds.includes(item._id) ? '✓' : '' }}</span>
+        <span class="cards--select-box" v-if="showSelectBoxes">{{ activeIds.includes(item._id) ? '✓' : '' }}</span>
       </div>
     </div>
   </div>
@@ -71,11 +71,15 @@ export default {
         return []
       }
     },
-    activeCategory: {
+    activeCollection: {
       type: Boolean,
       default: false
     },
     disableRoute: {
+      type: Boolean,
+      default: false
+    },
+    showSelectBoxes: {
       type: Boolean,
       default: false
     },
@@ -90,7 +94,6 @@ export default {
   },
   methods: {
     passCardActivation(recipeId) {
-      console.log(9)
       this.$emit('activate-card', recipeId)
     },
     processCardActivation(recipeId) {

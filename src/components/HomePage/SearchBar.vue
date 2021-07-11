@@ -18,7 +18,8 @@
         
         <div class="searchbar__button--add">
           <router-link to="/recipe/new" class="searchbar__element">Add New Recipe</router-link>
-          <span class="searchbar__element">Manage Collections</span>
+          <span @click="$emit('manageCollections')" v-if="!editCollections" class="searchbar__element">Manage Collections</span>
+          <span @click="$emit('saveCollections')" v-if="editCollections" class="searchbar__element">Save Collections</span>
         </div>
     </div>
     <div class="searchbar__tags__container">
@@ -51,7 +52,11 @@ export default {
     selectedTags: {
       type: Array,
       default: []
-    }
+    },
+    editCollections: {
+      type: Boolean,
+      default: false
+    },
   },
   methods: {
     addToSelectedTags(evt) {
@@ -100,6 +105,13 @@ export default {
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
+
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Old versions of Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently */
   }
   .searchbar__element--hollow {
     color: #B29A30 !important;

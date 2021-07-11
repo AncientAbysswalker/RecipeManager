@@ -6,7 +6,7 @@
         v-if="showModal"
         :titleText="modalTitle"
       >
-        <input slot="body" placeholder="Enter a collection name" v-model="dialogInput" />  <!--:disabled="!is_edit_mode" v-model="fields.name" :placeholder="is_edit_mode ? 'Recipe Title' : ''" />-->
+        <input slot="body" placeholder="Enter a collection name" maxlength="64" v-model="dialogInput" />
 
         <!-- Footer Buttons -->
         <button slot="footer" @click="verifyAndSaveCollection">Save</button>
@@ -19,43 +19,44 @@
         class="container__accordion" 
         label="All Recipes"
         :manageActive="true"
-        :manageActions="[
-          {icon: 'mdi-shape-square-plus', emitter: 'add-collection'}
-        ]"
-        @add-collection="openAddCollectionDialog"
       >
+        <!-- Main Array -->
         <RecipeCardArray
           :jobs="jobs"
           :filterString="filterString"
           :filterTags="filterTags"
-          :activeIds="modifyCategories.update['null'] || []"
+          :activeIds="modifyCollections.update['null'] || []"
           @activate-card="(id) => processCardActivation('null', id)"
-          :disableRoute="true"
+          :disableRoute="editCollections"
+          :showSelectBoxes="modifyCollections.base !== ''"
         />
+
+        <!-- Icons -->
+        <v-icon slot="icons" class="accordion__icon" v-if="editCollections" @click.stop.prevent="openAddCollectionDialog">mdi-shape-square-plus</v-icon>
       </AccordionBox>
       <AccordionBox 
-        v-for="(categoryTitle, index) in Object.keys(recipeCategories)" 
+        v-for="(collectionTitle, index) in Object.keys(recipeCollections)" 
         :key="index"
         class="container__accordion" 
-        :label="categoryTitle" 
-        :manageActions="[
-          {icon: 'mdi-pencil', emitter: 'edit-collection'},
-          {icon: 'mdi-content-save', emitter: 'save-collection'},
-          {icon: 'mdi-wrench', emitter: 'settings-collection'}
-        ]"
-        @settings-collection="() => openSettingsCollectionDialog(categoryTitle)"
-        @edit-collection="() => editCollection(categoryTitle)"
-        @save-collection="saveCollectionChanges"
+        :label="collectionTitle" 
         startExpanded
-      >
+      > 
+        <!-- Main Array -->
         <RecipeCardArray
-          :jobs="categoricalRecipes(recipeCategories[categoryTitle])"
+          :jobs="categoricalRecipes(recipeCollections[collectionTitle])"
           :filterString="filterString"
           :filterTags="filterTags"
-          :activeIds="modifyCategories.update[categoryTitle] || []"
-          @activate-card="(id) => processCardActivation(categoryTitle, id)"
-          :disableRoute="true"
+          :activeIds="modifyCollections.update[collectionTitle] || []"
+          @activate-card="(id) => processCardActivation(collectionTitle, id)"
+          :disableRoute="editCollections"
+          :showSelectBoxes="modifyCollections.base !== ''"
         />
+
+        <!-- Icons -->
+        <v-icon slot="icons" class="accordion__icon" v-if="editCollections && modifyCollections.base === ''" @click.stop.prevent="() => editCollection(collectionTitle)">mdi-pencil</v-icon>
+        <v-icon slot="icons" class="accordion__icon" v-if="editCollections && modifyCollections.base === collectionTitle" @click.stop.prevent="saveCollectionChanges">mdi-content-save</v-icon>
+        <v-icon slot="icons" class="accordion__icon" v-if="editCollections && modifyCollections.base === collectionTitle" @click.stop.prevent="dropCollectionChanges">mdi-close</v-icon>
+        <v-icon slot="icons" class="accordion__icon" v-if="editCollections && modifyCollections.base === ''" @click.stop.prevent="() => openSettingsCollectionDialog(collectionTitle)">mdi-wrench</v-icon>
       </AccordionBox>
     </div>
   </div>
@@ -104,13 +105,17 @@ export default {
     filterTags: {
       type: Array,
       default: []
-    }
+    },
+    editCollections: {
+      type: Boolean,
+      default: false
+    },
   },
   data: () => ({
     services: services,
     jobs: [],
-    recipeCategories: {},
-    modifyCategories: {
+    recipeCollections: {},
+    modifyCollections: {
       base: "",
       update: {}
     },
@@ -122,81 +127,95 @@ export default {
   }),
   methods: {
     processCardActivation(collectionName, recipeId) {
-      if (!this.modifyCategories.update.hasOwnProperty(collectionName)) {
-        this.$set(this.modifyCategories.update, collectionName, [recipeId]);
-      } else {
-        const recipeIdIndex = this.modifyCategories.update[collectionName].indexOf(recipeId);
-        if (recipeIdIndex > -1) {
-          this.modifyCategories.update[collectionName].splice(recipeIdIndex, 1);
+      // Only process if we are actually editing a collection
+      if (this.modifyCollections.base !== '') {
+        if (!this.modifyCollections.update.hasOwnProperty(collectionName)) {
+          this.$set(this.modifyCollections.update, collectionName, [recipeId]);
         } else {
-          this.modifyCategories.update[collectionName].push(recipeId);
+          const recipeIdIndex = this.modifyCollections.update[collectionName].indexOf(recipeId);
+          if (recipeIdIndex > -1) {
+            this.modifyCollections.update[collectionName].splice(recipeIdIndex, 1);
+          } else {
+            this.modifyCollections.update[collectionName].push(recipeId);
+          }
         }
       }
     },
     editCollection(collectionName) {
-      this.modifyCategories.base = collectionName;
+      this.modifyCollections.base = collectionName;
     },
     saveCollectionChanges() {
       // Identify collections to add from and to remove from
-      const editCollection = this.modifyCategories.base;
-      const arrayOfCollectionsToAddFrom = Object.keys(this.modifyCategories.update);
+      const editCollection = this.modifyCollections.base;
+      const arrayOfCollectionsToAddFrom = Object.keys(this.modifyCollections.update);
 
       // Add recipeIds from other collections
       for (const collectionToAddFrom of arrayOfCollectionsToAddFrom) {
         if (collectionToAddFrom !== editCollection) {
-          for (const recipeId of this.modifyCategories.update[collectionToAddFrom]) {
-            if (!this.recipeCategories[editCollection].includes(recipeId)) {
-              this.recipeCategories[editCollection].push(recipeId);
+          for (const recipeId of this.modifyCollections.update[collectionToAddFrom]) {
+            if (!this.recipeCollections[editCollection].includes(recipeId)) {
+              this.recipeCollections[editCollection].push(recipeId);
             }
           }
 
           // Reset checkboxes to empty
-          this.modifyCategories.update[collectionToAddFrom] = [];
+          this.modifyCollections.update[collectionToAddFrom] = [];
         }
       }
 
-      // Remove and collections selected within edited collection
-      for (const recipeId of this.modifyCategories.update[editCollection]) {
-        const recipeIndex = this.recipeCategories[editCollection].indexOf(recipeId);
-        if (recipeIndex > -1) {
-          this.recipeCategories[editCollection].splice(recipeIndex, 1);
+      // Remove and collections selected within edited collection (if it exists - otherwise we can only be adding!)
+      if (this.modifyCollections.update.hasOwnProperty(editCollection)) {
+        for (const recipeId of this.modifyCollections.update[editCollection]) {
+          const recipeIndex = this.recipeCollections[editCollection].indexOf(recipeId);
+          if (recipeIndex > -1) {
+            this.recipeCollections[editCollection].splice(recipeIndex, 1);
+          }
         }
       }
 
       // Reset base to original state
-      this.modifyCategories.update[editCollection] = [];
-      this.modifyCategories.base = "";
+      this.modifyCollections.update[editCollection] = [];
+      this.modifyCollections.base = "";
+    },
+    dropCollectionChanges() {
+      // Reset checkboxes to empty
+      const arrayOfCollectionsToAddFrom = Object.keys(this.modifyCollections.update);
+      for (const collectionToAddFrom of arrayOfCollectionsToAddFrom) {
+        this.modifyCollections.update[collectionToAddFrom] = [];
+      }
+      // Reset base to original state
+      this.modifyCollections.base = "";
     },
     openAddCollectionDialog() {
       this.showModal = true;
       this.modalTitle = "Add New Collection";
       this.enableCollectionDeletion = false;
     },
-    openSettingsCollectionDialog(categoryTitle) {
+    openSettingsCollectionDialog(collectionTitle) {
       this.showModal = true;
       this.modalTitle = "Rename or Delete Collection";
-      this.dialogInput = categoryTitle;
-      this.dialogInputEditReference = categoryTitle;
+      this.dialogInput = collectionTitle;
+      this.dialogInputEditReference = collectionTitle;
       this.enableCollectionDeletion = true;
     },
     verifyAndSaveCollection() {
       // First must be a valid key!
       if (this.dialogInput.trim() !== "" && this.dialogInput.toLowerCase() !== "null") {
         // Am I intesecting with another key?
-        if (!this.agnosticStringIncludedInStringArray(Object.keys(this.recipeCategories), this.dialogInput) || this.dialogInput.toLowerCase() === this.dialogInputEditReference.toLowerCase()) {
+        if (!this.agnosticStringIncludedInStringArray(Object.keys(this.recipeCollections), this.dialogInput) || this.dialogInput.toLowerCase() === this.dialogInputEditReference.toLowerCase()) {
           // If I am editing an existing key
           if (this.dialogInputEditReference !== "") {
             // Don't bother overwriting if EXACTLY the same
             if (this.dialogInput !== this.dialogInputEditReference) {
               // Copy to new key
               Object.defineProperty(
-                this.recipeCategories,
+                this.recipeCollections,
                 this.dialogInput,
-                Object.getOwnPropertyDescriptor(this.recipeCategories, this.dialogInputEditReference)
+                Object.getOwnPropertyDescriptor(this.recipeCollections, this.dialogInputEditReference)
               );
               
               // Remove old key
-              delete this.recipeCategories[this.dialogInputEditReference];
+              delete this.recipeCollections[this.dialogInputEditReference];
             }
             
             this.showModal = false;
@@ -204,7 +223,7 @@ export default {
             this.dialogInput = "";
             this.dialogInputEditReference = "";
           } else {
-            this.$set(this.recipeCategories, this.dialogInput, []);
+            this.$set(this.recipeCollections, this.dialogInput, []);
             this.showModal = false;
             this.dialogInput = "";
           }
@@ -213,7 +232,7 @@ export default {
     },
     deleteCollection() {
       if (this.dialogInputEditReference.trim() !== "" && this.dialogInputEditReference.toLowerCase() !== "null") {
-        delete this.recipeCategories[this.dialogInputEditReference];
+        delete this.recipeCollections[this.dialogInputEditReference];
 
         this.showModal = false;
         this.dialogInput = "";
@@ -221,12 +240,12 @@ export default {
       }
     },
     addCollection() {
-      console.log(this.recipeCategories)
-      if (!this.recipeCategories.hasOwnProperty("New Category!")) {
-        this.$set(this.recipeCategories, "New Category!", ["60bc2199d45b8e03541ff799", "60c02d57d45b8e03541ff79b"]);
+      console.log(this.recipeCollections)
+      if (!this.recipeCollections.hasOwnProperty("New Category!")) {
+        this.$set(this.recipeCollections, "New Category!", ["60bc2199d45b8e03541ff799", "60c02d57d45b8e03541ff79b"]);
         this.showModal = true;
       } else {
-        this.recipeCategories["New Category!"].push("60c2cc8ad45b8e03541ff79c");
+        this.recipeCollections["New Category!"].push("60c2cc8ad45b8e03541ff79c");
       }
     },
     categoricalRecipes(categoricalRecipeIds) {
@@ -257,6 +276,19 @@ export default {
       }
       return false;
     },
+    submitCollections() {
+      // Submit changes to server and return a promise
+      return axios
+        .put(
+          `${this.services.url_userdata}/collections`, 
+          this.recipeCollections,
+          {withCredentials: true}
+        )
+        .then((res) => {
+          console.log(res);
+        })
+        .catch((err) => console.log(err));
+    },
   },
   mounted() {
     // Import api data to populate recipe cards
@@ -268,15 +300,15 @@ export default {
         this.jobs = res.data;
         this.$emit('updateAvailableTags', flattenTagsFromAllRecipes(this.jobs));
 
-        // axios
-        //   .get(
-        //     `${this.services.url_userdata}/collections`, 
-        //     {withCredentials: true}
-        //   )
-        //   .then((res) => {
-        //     this.recipeCategories = res.data.userCollections;
-        //   })
-        //   .catch((err) => console.log(err));
+        axios
+          .get(
+            `${this.services.url_userdata}/collections`, 
+            {withCredentials: true}
+          )
+          .then((res) => {
+            this.recipeCollections = res.data.userCollections;
+          })
+          .catch((err) => console.log(err));
       })
       .catch((err) => console.log(err));
   },
