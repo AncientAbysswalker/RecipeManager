@@ -17,12 +17,13 @@
       <!-- Accordions -->
       <AccordionBox 
         class="container__accordion" 
-        label="All Recipes"
+        label="All Saved Recipes"
         :manageActive="true"
       >
         <!-- Main Array -->
+        <p v-if="recipeHeaders.length === 0 || false">No saved recipes! :(</p>
         <RecipeCardArray
-          :jobs="jobs"
+          :recipeHeaders="recipeHeaders"
           :filterString="filterString"
           :filterTags="filterTags"
           :activeIds="modifyCollections.update['null'] || []"
@@ -43,13 +44,14 @@
       > 
         <!-- Main Array -->
         <RecipeCardArray
-          :jobs="categoricalRecipes(recipeCollections[collectionTitle])"
+          :recipeHeaders="categoricalRecipes(recipeCollections[collectionTitle])"
           :filterString="filterString"
           :filterTags="filterTags"
           :activeIds="modifyCollections.update[collectionTitle] || []"
           @activate-card="(id) => processCardActivation(collectionTitle, id)"
           :disableRoute="editCollections"
           :showSelectBoxes="modifyCollections.base !== ''"
+          :selectBoxChar="(modifyCollections.base === collectionTitle) ? '✘' : '✔'"
         />
 
         <!-- Icons -->
@@ -113,7 +115,7 @@ export default {
   },
   data: () => ({
     services: services,
-    jobs: [],
+    recipeHeaders: [],
     recipeCollections: {},
     modifyCollections: {
       base: "",
@@ -249,7 +251,7 @@ export default {
       }
     },
     categoricalRecipes(categoricalRecipeIds) {
-      return this.jobs.filter((item) => (categoricalRecipeIds.includes(item._id)));
+      return this.recipeHeaders.filter((item) => (categoricalRecipeIds.includes(item._id)));
     },
     agnosticStringIncludes(base, check) {
       return base.toLowerCase().includes(check.toLowerCase());      
@@ -293,12 +295,11 @@ export default {
   mounted() {
     // Import api data to populate recipe cards
     axios
-      .get(
-        `${this.services.url_api}?fields=name&fields=time_active&fields=images&fields=tags`
-      )
+      .get(`${this.services.url_api_user_saved}?fields=headers`, {withCredentials: true})
       .then((res) => {
-        this.jobs = res.data;
-        this.$emit('updateAvailableTags', flattenTagsFromAllRecipes(this.jobs));
+        this.recipeHeaders = res.data;
+        console.log(this.recipeHeaders)
+        this.$emit('updateAvailableTags', flattenTagsFromAllRecipes(this.recipeHeaders));
 
         axios
           .get(

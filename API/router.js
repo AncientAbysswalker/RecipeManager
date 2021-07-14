@@ -54,6 +54,15 @@ MongoClient.connect(
       );
       app.use("/recipes", route_recipes);
 
+      // Handle Routing for recipe API for user-saved recipes
+      const route_recipes_user = require("./routes/user-saved-recipes")(
+        client,
+        log_requests,
+        log_errors,
+        color_disabled
+      );
+      app.use("/user-saved-recipes", route_recipes_user);
+
       // Handle Routing for userdata API
       const route_userdata = require("./routes/userdata")(
         client,

@@ -6,6 +6,7 @@
       <span ref="login-warn-username" class="login__page__warn-text hidden">Username or password is incorrect</span>
       <div class="anchor login__page__input__margin">
         <input class="login__page__input" :type="viewPassword ? 'text' : 'password'" placeholder="Enter Password" name="password" v-model="user.password" required>
+        <span ref="login-warn-password" class="login__page__warn-text hidden">Username or password is incorrect</span>
         <v-icon v-if="!viewPassword" @click="viewPassword=true" class="login__page__input__icon">mdi-eye-off</v-icon>
         <v-icon v-else @click="viewPassword=!viewPassword" class="login__page__input__icon">mdi-eye</v-icon>
       </div>

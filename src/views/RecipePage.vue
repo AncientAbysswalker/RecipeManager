@@ -109,7 +109,9 @@
 
                     <!-- Top Edit-Control Container -->
                     <div v-if="this.$root.sessionInfo && this.$root.sessionInfo.loggedIn" class="edit__mode__top">
-                        <v-icon class="edit__mode__top--item button__no__ripple" @click="printListState">mdi-cog</v-icon>
+                        <v-icon v-if="!is_edit_mode && !tempMyRecipe && !savedToMyRecipes && (this.$root.sessionInfo.userId !== this.fields.ownerId || !this.fields.ownerId)" class="edit__mode__top--item button__no__ripple" @click="saveToMyRecipes">mdi-star-outline</v-icon>
+                        <v-icon v-if="!is_edit_mode && !tempMyRecipe && savedToMyRecipes && (this.$root.sessionInfo.userId !== this.fields.ownerId || !this.fields.ownerId)" class="edit__mode__top--item edit__mode__top--gold button__no__ripple" @click="removeFromMyRecipes">mdi-star</v-icon>
+                        <v-icon v-if="false" class="edit__mode__top--item button__no__ripple" @click="printListState">mdi-cog</v-icon>
                         <v-icon v-if="!is_edit_mode && (tempMyRecipe || (this.fields.ownerId && this.$root.sessionInfo.userId === this.fields.ownerId))" class="edit__mode__top--item button__no__ripple" @click="()=>{this.is_edit_mode=true}">mdi-square-edit-outline</v-icon>
                         <v-icon v-else-if="!is_edit_mode && (this.$root.sessionInfo.userId !== this.fields.ownerId || !this.fields.ownerId)" class="edit__mode__top--item button__no__ripple" @click="()=>{this.is_edit_mode=true; this.fields._id=null}">mdi-content-copy</v-icon>
                         <v-icon v-else class="edit__mode__top--item button__no__ripple" @click="cleanAndSaveRecipeChanges">mdi-content-save</v-icon>
@@ -259,7 +261,8 @@ export default {
     },
     InstructionTypeEnum: InstructionTypeEnum,
     data: () => ({
-        tempMyRecipe: false,        
+        tempMyRecipe: false,
+        savedToMyRecipes: false,
         fields: {
             name: "",
             time_active: null,
@@ -538,6 +541,26 @@ export default {
                 } 
             }
         },
+        saveToMyRecipes() {
+            axios
+                .put(`${this.$options.services.url_userdata}/saved-recipes/${this.$route.params.id}`, {isToBeSaved: true}, {withCredentials: true})
+                .then(res => {
+                    this.savedToMyRecipes = true;
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+        },
+        removeFromMyRecipes() {
+            axios
+                .put(`${this.$options.services.url_userdata}/saved-recipes/${this.$route.params.id}`, {isToBeSaved: false}, {withCredentials: true})
+                .then(res => {
+                    this.savedToMyRecipes = false;
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+        },
     },
     mounted() {
         //axios.get(`${this.$options.services.url_api}`, {withCredentials: true}).then(res => {console.log('res');console.log(res)})
@@ -548,18 +571,28 @@ export default {
                 this.is_loading = true;
                 this.loading_text = "Loading Recipe";
                 axios
-                .get(`${this.$options.services.url_api}/${this.$route.params.id}`, {withCredentials: true, credentials: 'include'})
-                .then(res => {
-                    this.fields = res.data;
-                    this.loaded_images = this.fields.images.map((src) => ({ uploadState: this.$options.ImageStateEnum.HOSTED, hostedSource: src }))
-                    this.is_loading = false;
-                    console.log(this.fields);
-                    console.log(res);
-                })
-                .catch(err => {
-                    console.log(err);
-                    //this.$router.push('/');
-                })
+                    .get(`${this.$options.services.url_api}/${this.$route.params.id}`, {withCredentials: true, credentials: 'include'})
+                    .then(res => {
+                        this.fields = res.data;
+                        this.loaded_images = this.fields.images.map((src) => ({ uploadState: this.$options.ImageStateEnum.HOSTED, hostedSource: src }))
+                        this.is_loading = false;
+                        console.log(this.fields);
+                        console.log(res);
+
+                        axios
+                            .get(`${this.$options.services.url_userdata}/saved-recipes/${this.$route.params.id}`, {withCredentials: true})
+                            .then(res => {
+                                console.log('in?: '+res.data)
+                                this.savedToMyRecipes = res.data;
+                            })
+                            .catch(err => {
+                                console.log(err);
+                            })
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        //this.$router.push('/');
+                    })
             } else {
                 console.error("Invalid recipe id: 24-digit hex required");
                 this.$router.push('/');
@@ -640,6 +673,9 @@ img {
 }
 .edit__mode__top--item:active {
     background-color: #dedede;
+}
+.edit__mode__top--gold {
+    color: #B29A30;
 }
 .button__no__ripple:after { // Remove default ripple
   opacity: 0 !important;

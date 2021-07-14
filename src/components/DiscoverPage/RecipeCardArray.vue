@@ -8,7 +8,7 @@
           :disableRoute="disableRoute"
           @activate-card="passCardActivation"
         />
-        <span class="cards--select-box" v-if="showSelectBoxes">{{ activeIds.includes(item._id) ? selectBoxChar : '' }}</span>
+        <span class="cards--select-box" v-if="showSelectBoxes">{{ activeIds.includes(item._id) ? '✓' : '' }}</span>
       </div>
     </div>
   </div>
@@ -83,10 +83,6 @@ export default {
       type: Boolean,
       default: false
     },
-    selectBoxChar: {
-      type: String,
-      default: "✓"
-    }
   },
   data: () => ({ 
     activatedCards: []

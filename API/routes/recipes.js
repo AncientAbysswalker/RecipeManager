@@ -15,11 +15,13 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
 
   // Load config
   const db_name = require("./db_config").db_name;
+  const userdata_collection = require("./db_config").userdata_collection;
   const recipes_collection = require("./db_config").recipes_collection;
 
   // Set up MongoDB variables
   let db = client.db(db_name);
   let recipes = db.collection(recipes_collection);
+  let userdata = db.collection(userdata_collection);
 
   // Common functions
   function isRecipeOwnerById(request, response, next) {
@@ -97,41 +99,149 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     }
   }
 
+  function headerOverride(arr, cb) {
+    if (arr.indexOf('headers') > -1) {
+      return {
+        name: 1,
+        images: 1,
+        tags: 1
+      }
+    } else {
+      return cb(arr);
+    }
+  }
+
   // ExpressJS Router
   router
     .post("/", log.req_post, (request, response) => {
-      try {
-        // Build new entry from request body. Any fields not included will become null
-        let new_entry = {
-          name: request.body.name,
-          time_active: request.body.time_active,
-          time_total: request.body.time_total,
-          ingredients: request.body.ingredients,
-          instructions: request.body.instructions,
-          images: request.body.images,
-          tags: request.body.tags,
-          yield: request.body.yield,
-          ownerId: request.session.loggedIn ? request.session.userId : undefined
-        };
+      // First confirm that we have a session!
+      const loggedIn = request.session.loggedIn;
+      const userId = request.session.userId;
 
-        // Insert one recipe
-        recipes.insertOne(new_entry, (err, result) => {
-          if (!err) {
-            log.success("POST", request.originalUrl, request.clf, 201);
-            response.status(201).send(result.ops[0]);
-          } else {
-            log.fail("POST", request.originalUrl, request.clf, 500, err);
-            response.status(500).send({
-              status: 500,
-              message: "Internal database exception",
-            });
-          }
-        });
-      } catch (err) {
-        log.fail("POST", request.originalUrl, request.clf, 500, err);
-        response.status(500).send({
-          status: 500,
-          message: "Internal database exception",
+      if (loggedIn && userId) {
+        try {
+          // Build new entry from request body. Any fields not included will become null
+          let new_entry = {
+            name: request.body.name,
+            time_active: request.body.time_active,
+            time_total: request.body.time_total,
+            ingredients: request.body.ingredients,
+            instructions: request.body.instructions,
+            images: request.body.images,
+            tags: request.body.tags,
+            yield: request.body.yield,
+            ownerId: request.session.loggedIn ? request.session.userId : undefined
+          };
+
+          // Insert one recipe
+          recipes.insertOne(new_entry, (err, recipeResult) => {
+            if (!err) {
+              // Once the recipe is inserted, then insert a reference into the user's saved recipes
+              try {
+                userdata.findOne(
+                  { userId: userId },
+                  (err, storedUserdataResult) => {
+                    if (!err) {
+                      const recipeId = recipeResult.ops[0]._id.toString();
+
+                      if (storedUserdataResult === null) { // If there are not yet any saved recipes, make it so
+                        try {
+                          userdata.insertOne(
+                            {
+                              userId: userId,
+                              savedRecipes: [recipeId],
+                              userCollections: {}
+                            }, (err, updatedUserdataResult) => {
+                              if (!err) {
+                                // After saving to userdata, return recipeResult
+                                log.success("POST", request.originalUrl, request.clf, 201);
+                                response.status(201).send(recipeResult.ops[0]);
+                              } else {
+                                log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                                response.status(500).send({
+                                  status: 500,
+                                  message: "Internal database exception",
+                                });
+                              }
+                            }
+                          );
+                        } catch (err) {
+                          log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                          response.status(500).send({
+                            status: 500,
+                            message: "Internal database exception",
+                          });
+                        }
+                      } else { // If there ARE saved recipes, modify them
+                        try {
+                          // Current data
+                          let savedRecipes = storedUserdataResult.savedRecipes;
+
+                          // Add new recipe to saved recipes (there can not be clashes as unique id)
+                          savedRecipes.push(recipeId);
+
+                          // Update db
+                          userdata.updateOne(
+                            { userId: userId },
+                            { $set: { savedRecipes: savedRecipes } },
+                            (err, updatedUserdataResult) => {
+                              if (!err) {
+                                // After saving to userdata, return recipeResult
+                                log.success("POST", request.originalUrl, request.clf, 201);
+                                response.status(201).send(recipeResult.ops[0]);
+                              } else {
+                                log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                                response.status(500).send({
+                                  status: 500,
+                                  message: "Internal database exception",
+                                });
+                              }
+                            }
+                          );
+                        } catch (err) {
+                          log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                          response.status(500).send({
+                            status: 500,
+                            message: "Internal database exception",
+                          });
+                        }
+                      }
+                    } else {
+                      log.fail("GET", request.originalUrl, request.clf, 500, err);
+                      response.status(500).send({
+                        status: 500,
+                        message: "Internal database exception",
+                      });
+                    }
+                  }
+                );
+              } catch (err) {
+                log.fail("GET", request.originalUrl, request.clf, 500, err);
+                response.status(500).send({
+                  status: 500,
+                  message: "Internal database exception",
+                });
+              }
+            } else {
+              log.fail("POST", request.originalUrl, request.clf, 500, err);
+              response.status(500).send({
+                status: 500,
+                message: "Internal database exception",
+              });
+            }
+          });
+        } catch (err) {
+          log.fail("POST", request.originalUrl, request.clf, 500, err);
+          response.status(500).send({
+            status: 500,
+            message: "Internal database exception",
+          });
+        }
+      } else {
+        log.fail("POST", request.originalUrl, 0, 401, "User not authorized for action");
+        response.status(401).send({
+          status: 401,
+          message: "User not authorized for action",
         });
       }
     })
@@ -145,7 +255,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
         // Query mongo db
         recipes
           .find()
-          .project(fields.reduce((a, b) => ((a[b] = 1), a), {}))
+          .project(headerOverride(fields, (x) => x.reduce((a, b) => ((a[b] = 1), a), {})))
           .toArray((err, result_raw) => {
             // Strip result of any entries only containing _id
             let result = qry.filterEmpty(result_raw, fields.includes("_id"));
@@ -196,7 +306,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
 
           recipes.findOne(
             { _id: id },
-            { projection: fields.reduce((a, b) => ((a[b] = 1), a), {}) },
+            { projection: headerOverride(fields, (x) => x.reduce((a, b) => ((a[b] = 1), a), {})) },
             (err, result) => {
               if (!err) {
                 // If response is null or only the _id, respond 404

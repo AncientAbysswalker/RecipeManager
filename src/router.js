@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Router from "vue-router";
 import HomePage from "./views/HomePage.vue";
+import DiscoverPage from "./views/DiscoverPage.vue";
 import RecipePage from "./views/RecipePage.vue";
 import LoginPage from "./views/LoginPage.vue";
 import About from "./views/About.vue";
@@ -13,6 +14,11 @@ export default new Router({
       path: "/",
       name: "home",
       component: HomePage,
+    },
+    {
+      path: "/discover",
+      name: "discover",
+      component: DiscoverPage,
     },
     {
       path: "/about",
