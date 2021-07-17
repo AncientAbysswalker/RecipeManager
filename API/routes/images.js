@@ -12,6 +12,9 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     color_disabled
   );
 
+  // Load query helpers and middleware
+  const mdw = require("../helpers/middleware");
+
   // Upload Limits
   const max_filesize = 10000000; // 10MB
 
@@ -63,13 +66,13 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     .use("/", express.static("/data/images"))
 
     // Allow Image Upload
-    .post("/upload", (request, response) => {
-      // Log request and save time of request
-      let time_req = log.req_post(request.originalUrl);
-
+    .post("/upload", mdw.setReqType("UPLOAD"), (request, response) => {
       upload.array("images")(request, response, (err) => {
         if (!err) {
-          log.success("POST", request.originalUrl, time_req, 201);
+          log.success(
+            request,
+            201
+          );
           return response.status(201).send({
             status: 201,
             message: "Image Uploaded Successfully",
@@ -79,9 +82,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
           switch (err.code) {
             case "INVALID_TYPE":
               log.fail(
-                "POST",
-                request.originalUrl,
-                time_req,
+                request,
                 422,
                 "Corrupted Image File or Invalid File Type - Supported Types are jpg, jpeg, gif, png"
               );
@@ -93,9 +94,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
               break;
             case "LIMIT_FILE_SIZE":
               log.fail(
-                "POST",
-                request.originalUrl,
-                time_req,
+                request,
                 422,
                 "Image is too large. Maximum size of 10MB"
               );
@@ -105,7 +104,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
               });
               break;
             default:
-              log.fail("POST", request.originalUrl, time_req, 422, err.message);
+              log.fail(
+                request,
+                422,
+                err.message
+              );
               return response.status(422).send({
                 status: 422,
                 message: err.message,
@@ -114,57 +117,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
           }
         }
       });
-      // upload.single("profile_pic")(request, response, (err) => {
-      //   if (!err) {
-      //     log.success("POST", request.originalUrl, time_req, 201);
-      //     return response.status(201).send({
-      //       status: 201,
-      //       message: "Image Uploaded Successfully",
-      //       filename: request.file.filename,
-      //     });
-      //   } else {
-      //     switch (err.code) {
-      //       case "INVALID_TYPE":
-      //         log.fail(
-      //           "POST",
-      //           request.originalUrl,
-      //           time_req,
-      //           422,
-      //           "Corrupted Image File or Invalid File Type - Supported Types are jpg, jpeg, gif, png"
-      //         );
-      //         return response.status(422).send({
-      //           status: 422,
-      //           message:
-      //             "Invalid File Type or Corrupted Image File - Supported Types are jpg, jpeg, gif, png",
-      //         });
-      //         break;
-      //       case "LIMIT_FILE_SIZE":
-      //         log.fail(
-      //           "POST",
-      //           request.originalUrl,
-      //           time_req,
-      //           422,
-      //           "Image is too large. Maximum size of 10MB"
-      //         );
-      //         return response.status(422).send({
-      //           status: 422,
-      //           message: "Image is too large. Maximum size of 10MB",
-      //         });
-      //         break;
-      //       default:
-      //         log.fail("POST", request.originalUrl, time_req, 422, err.message);
-      //         return response.status(422).send({
-      //           status: 422,
-      //           message: err.message,
-      //         });
-      //         break;
-      //     }
-      //   }
-      // });
-    })
-
-    // Temporary testing of image upload
-    .use("/testUpload", express.static("/data/imageupload"));
+    });
 
   return router;
 };

@@ -10,6 +10,9 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     color_disabled
   );
 
+  // Load query helpers and middleware
+  const mdw = require("../helpers/middleware");
+
   // Load config
   const db_name = require("./db_config").db_name;
   const userdata_collection = require("./db_config").userdata_collection;
@@ -21,7 +24,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
   // ExpressJS Router
   router
     // [GET] the collections data for the current session
-    .get("/collections", log.req_get, (request, response) => {
+    .get("/collections", mdw.setReqType("GET"), log.req, (request, response) => {
 
       // Logged in?
       const loggedIn = request.session.loggedIn;
@@ -34,18 +37,27 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
               if (!err) {
                 // If response is null or only the _id, respond 404
                 if (result === null) {
-                  log.success("GET", request.originalUrl, request.clf, 200);
+                  log.success(
+                    request,
+                    200
+                  );
                   response.json({
                     userCollections: {}
                   });
                 } else {
-                  log.success("GET", request.originalUrl, request.clf, 200);
+                  log.success(
+                    request,
+                    200
+                  );
                   response.json({
                     userCollections: result.userCollections
                   });
                 }
               } else {
-                log.fail("GET", request.originalUrl, request.clf, 500, err);
+                log.fail(request,
+                  500,
+                  err
+                );
                 response.status(500).send({
                   status: 500,
                   message: "Internal database exception",
@@ -54,14 +66,21 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             }
           );
         } catch (err) {
-          log.fail("GET", request.originalUrl, request.clf, 500, err);
+          log.fail(
+            request,
+            500,
+            err
+          );
           response.status(500).send({
             status: 500,
             message: "Internal database exception",
           });
         }
       } else {
-        log.success("GET", request.originalUrl, request.clf, 200);
+        log.success(
+          request,
+          200
+        );
         response.json({
           userCollections: {}
         });
@@ -69,7 +88,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     })
 
     // [PUT] the collections data for the current session
-    .put("/collections", log.req_put, (request, response) => {
+    .put("/collections", mdw.setReqType("PUT"), log.req, (request, response) => {
       // First confirm that we have a session!
       if (request.session.loggedIn && request.session.userId) {
         // Build new entry from request body. Any fields not included will become null
@@ -91,10 +110,17 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                         userCollections: newCollections
                       }, (err, result) => {
                         if (!err) {
-                          log.success("PUT", request.originalUrl, request.clf, 200);
+                          log.success(
+                            request,
+                            200
+                          );
                           response.json(result.userCollections);
                         } else {
-                          log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                          log.fail(
+                            request,
+                            500,
+                            err
+                          );
                           response.status(500).send({
                             status: 500,
                             message: "Internal database exception",
@@ -103,7 +129,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                       }
                     );
                   } catch (err) {
-                    log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                    log.fail(
+                      request,
+                      500,
+                      err
+                    );
                     response.status(500).send({
                       status: 500,
                       message: "Internal database exception",
@@ -116,10 +146,17 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                       { $set: { userCollections: newCollections } },
                       (err, result) => {
                         if (!err) {
-                          log.success("PUT", request.originalUrl, request.clf, 200);
+                          log.success(
+                            request,
+                            200
+                          );
                           response.json(result.userCollections);
                         } else {
-                          log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                          log.fail(
+                            request,
+                            500,
+                            err
+                          );
                           response.status(500).send({
                             status: 500,
                             message: "Internal database exception",
@@ -128,7 +165,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                       }
                     );
                   } catch (err) {
-                    log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                    log.fail(
+                      request,
+                      500,
+                      err
+                    );
                     response.status(500).send({
                       status: 500,
                       message: "Internal database exception",
@@ -136,7 +177,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                   }
                 }
               } else {
-                log.fail("GET", request.originalUrl, request.clf, 500, err);
+                log.fail(
+                  request,
+                  500,
+                  err
+                );
                 response.status(500).send({
                   status: 500,
                   message: "Internal database exception",
@@ -145,7 +190,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             }
           );
         } catch (err) {
-          log.fail("GET", request.originalUrl, request.clf, 500, err);
+          log.fail(
+            request,
+            500,
+            err
+          );
           response.status(500).send({
             status: 500,
             message: "Internal database exception",
@@ -153,9 +202,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
         }
       } else {
         log.fail(
-          "PUT",
-          request.originalUrl,
-          request.clf,
+          request,
           401,
           "A user is required for authorization for this action"
         );
@@ -168,7 +215,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
 
 
     // [GET] whether a recipe id is in the session's saved recipes list or not
-    .get("/saved-recipes/:id", log.req_get, (request, response) => {
+    .get("/saved-recipes/:id", mdw.setReqType("GET"), log.req, (request, response) => {
 
       // Logged in?
       const loggedIn = request.session.loggedIn;
@@ -185,21 +232,34 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                 if (!err) {
                   // If response is null then no it is not in our saved recipes
                   if (result === null) {
-                    log.success("GET", request.originalUrl, request.clf, 200);
+                    log.success(
+                      request,
+                      200
+                    );
                     response.json(false);
                   } else {
                     const savedRecipes = result.savedRecipes;
 
                     if (savedRecipes.indexOf(request.params.id) > -1) {
-                      log.success("GET", request.originalUrl, request.clf, 200);
+                      log.success(
+                        request,
+                        200
+                      );
                       response.json(true);
                     } else {
-                      log.success("GET", request.originalUrl, request.clf, 200);
+                      log.success(
+                        request,
+                        200
+                      );
                       response.json(false);
                     }
                   }
                 } else {
-                  log.fail("GET", request.originalUrl, request.clf, 500, err);
+                  log.fail(
+                    request,
+                    500,
+                    err
+                  );
                   response.status(500).send({
                     status: 500,
                     message: "Internal database exception",
@@ -208,7 +268,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
               }
             );
           } catch (err) {
-            log.fail("GET", request.originalUrl, request.clf, 500, err);
+            log.fail(
+              request,
+              500,
+              err
+            );
             response.status(500).send({
               status: 500,
               message: "Internal database exception",
@@ -216,9 +280,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
           }
         } catch (err) {
           log.fail(
-            "PUT",
-            request.originalUrl,
-            request.clf,
+            request,
             400,
             "The id provided must be a single string of 12 bytes or 24 hex characters"
           );
@@ -229,13 +291,16 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
           });
         }
       } else {
-        log.success("GET", request.originalUrl, request.clf, 200);
+        log.success(
+          request,
+          200
+        );
         response.json(false);
       }
     })
 
     // [PUT] whether a recipe id is in the session's saved recipes list or not
-    .put("/saved-recipes/:id", log.req_put, (request, response) => {
+    .put("/saved-recipes/:id", mdw.setReqType("PUT"), log.req, (request, response) => {
       // First confirm that we have a session!
       const loggedIn = request.session.loggedIn;
       const userId = request.session.userId;
@@ -261,13 +326,20 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                         userCollections: {}
                       }, (err, updatedUserdataResult) => {
                         if (!err) {
-                          log.success("PUT", request.originalUrl, request.clf, 200);
+                          log.success(
+                            request,
+                            200
+                          );
                           response.status(200).send({
                             status: 200,
                             message: "Saved recipes list updated",
                           });
                         } else {
-                          log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                          log.fail(
+                            request,
+                            500,
+                            err
+                          );
                           response.status(500).send({
                             status: 500,
                             message: "Internal database exception",
@@ -276,7 +348,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                       }
                     );
                   } catch (err) {
-                    log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                    log.fail(
+                      request,
+                      500,
+                      err
+                    );
                     response.status(500).send({
                       status: 500,
                       message: "Internal database exception",
@@ -318,13 +394,20 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                       { $set: { userCollections: userCollections } },
                       (err, updatedUserdataResult) => {
                         if (!err) {
-                          log.success("PUT", request.originalUrl, request.clf, 200);
+                          log.success(
+                            request,
+                            200
+                          );
                           response.status(200).send({
                             status: 200,
                             message: "Saved recipes list updated",
                           });
                         } else {
-                          log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                          log.fail(
+                            request,
+                            500,
+                            err
+                          );
                           response.status(500).send({
                             status: 500,
                             message: "Internal database exception",
@@ -333,7 +416,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                       }
                     );
                   } catch (err) {
-                    log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                    log.fail(
+                      request,
+                      500,
+                      err
+                    );
                     response.status(500).send({
                       status: 500,
                       message: "Internal database exception",
@@ -341,7 +428,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                   }
                 }
               } else {
-                log.fail("GET", request.originalUrl, request.clf, 500, err);
+                log.fail(
+                  request,
+                  500,
+                  err
+                );
                 response.status(500).send({
                   status: 500,
                   message: "Internal database exception",
@@ -350,7 +441,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             }
           );
         } catch (err) {
-          log.fail("GET", request.originalUrl, request.clf, 500, err);
+          log.fail(
+            request,
+            500,
+            err
+          );
           response.status(500).send({
             status: 500,
             message: "Internal database exception",
@@ -358,9 +453,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
         }
       } else {
         log.fail(
-          "PUT",
-          request.originalUrl,
-          request.clf,
+          request,
           401,
           "A user is required for authorization for this action"
         );

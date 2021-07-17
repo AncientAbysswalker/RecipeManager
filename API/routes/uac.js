@@ -11,6 +11,9 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     color_disabled
   );
 
+  // Load query helpers and middleware
+  const mdw = require("../helpers/middleware");
+
   // Load config
   const db_name = require("./db_config").db_name;
   const users_collection = require("./db_config").users_collection;
@@ -29,8 +32,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
   // ExpressJS Router
   router
     // [POST] Attempt to login
-    .post("/login", (request, response) => {
-      console.log(request.body)
+    .post("/login", mdw.setReqType("LOGIN"), log.req, (request, response) => {
       const username = request.body.username;
       const password = request.body.password;
       const hashedPassword = getHashedPassword(password);
@@ -43,9 +45,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             // If response is null, respond 404
             if (result === null) {
               log.fail(
-                "POST",
-                request.originalUrl,
-                request.clf,
+                request,
                 401,
                 "The requested user could not be found"
               );
@@ -68,12 +68,15 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                 sessionInfo.loggedIn = true;
                 sessionInfo.username = username
                 sessionInfo.userId = userId;
+
+                log.success(
+                  request,
+                  200
+                );
                 response.json(sessionInfo);
               } else {
                 log.fail(
-                  "POST",
-                  request.originalUrl,
-                  request.clf,
+                  request,
                   401,
                   "An invalid password was used"
                 );
@@ -84,7 +87,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
               }
             }
           } else {
-            log.fail("POST", request.originalUrl, request.clf, 500, err);
+            log.fail(
+              request,
+              500,
+              err
+            );
             response.status(500).send({
               status: 500,
               message: "Internal database exception",
@@ -95,15 +102,24 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     })
 
     // [POST] Logout current session
-    .post("/logout", (request, response) => {
+    .post("/logout", mdw.setReqType("LOGOUT"), log.req, (request, response) => {
       if (request.session.loggedIn) {
         request.session.destroy(() => {
           console.log("user logged out.")
         });
+        log.success(
+          request,
+          200
+        );
         response.status(200).json({
           status: 'Successfully logged out'
         });
       } else {
+        log.fail(
+          request,
+          400,
+          "Cannot log out: Not logged in"
+        );
         response.status(400).json({
           status: 'Cannot log out: Not logged in'
         });
@@ -111,8 +127,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     })
 
     // [POST] Attempt to sign up
-    .post("/signup", (request, response) => {
-      console.log(request.body)
+    .post("/signup", mdw.setReqType("SIGNUP"), log.req, (request, response) => {
       const username = request.body.username;
       const password = request.body.password;
       const email = request.body.email;
@@ -126,9 +141,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             // If response is not null, we already have that username
             if (result !== null) {
               log.fail(
-                "POST",
-                request.originalUrl,
-                request.clf,
+                request,
                 409,
                 "The requested user already exists"
               );
@@ -146,9 +159,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                     // If response is not null, we already have that email in use
                     if (result !== null) {
                       log.fail(
-                        "POST",
-                        request.originalUrl,
-                        request.clf,
+                        request,
                         409,
                         "The requested email is already in use"
                       );
@@ -182,7 +193,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                           sessionInfo.userId = userId;
                           response.json(sessionInfo);
                         } else {
-                          log.fail("POST", request.originalUrl, request.clf, 500, err);
+                          log.fail(
+                            request,
+                            500,
+                            err
+                          );
                           response.status(500).send({
                             status: 500,
                             message: "Internal database exception",
@@ -191,7 +206,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                       });
                     }
                   } else {
-                    log.fail("POST", request.originalUrl, request.clf, 500, err);
+                    log.fail(
+                      request,
+                      500,
+                      err
+                    );
                     response.status(500).send({
                       status: 500,
                       message: "Internal database exception",
@@ -201,7 +220,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
               );
             }
           } else {
-            log.fail("POST", request.originalUrl, request.clf, 500, err);
+            log.fail(
+              request,
+              500,
+              err
+            );
             response.status(500).send({
               status: 500,
               message: "Internal database exception",
@@ -212,7 +235,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     })
 
     // Get Session Status
-    .get("/session", (request, response) => {
+    .get("/session", mdw.setReqType("STATUS"), log.req, (request, response) => {
       let sessionInfo = {};
       if (request.session && request.session.loggedIn) {
         sessionInfo.loggedIn = true;

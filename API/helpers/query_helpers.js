@@ -16,3 +16,16 @@ exports.paramToList = (param) => {
 exports.filterEmpty = (ls, override = false) => {
   return override ? ls : ls.filter((obj) => Object.keys(obj).length !== 1);
 };
+
+// Return the fields that would be hearder fields if headers are requested
+exports.headerOverride = (arr, cb) => {
+  if (arr.indexOf('headers') > -1) {
+    return {
+      name: 1,
+      images: 1,
+      tags: 1
+    }
+  } else {
+    return cb(arr);
+  }
+}

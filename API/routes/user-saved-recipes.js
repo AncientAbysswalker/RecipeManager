@@ -10,8 +10,9 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     color_disabled
   );
 
-  // Load query helpers
+  // Load query helpers and middleware
   const qry = require("../helpers/query_helpers");
+  const mdw = require("../helpers/middleware");
 
   // Load config
   const db_name = require("./db_config").db_name;
@@ -23,23 +24,10 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
   let recipes = db.collection(recipes_collection);
   let userdata = db.collection(userdata_collection);
 
-  // Common functions
-  function headerOverride(arr, cb) {
-    if (arr.indexOf('headers') > -1) {
-      return {
-        name: 1,
-        images: 1,
-        tags: 1
-      }
-    } else {
-      return cb(arr);
-    }
-  }
-
   // ExpressJS Router
   router
     // [GET] the data for user-saved recipes, with optional filtering
-    .get("/", log.req_get, (request, response) => {
+    .get("/", mdw.setReqType("GET"), log.req, (request, response) => {
       try {
         // Ensure that the fields will always be a list
         let fields = qry.paramToList(request.query.fields);
@@ -56,21 +44,31 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                 if (!err) {
                   // If response is null or only the _id, respond 404
                   if (storedUserdataResult === null) {
-                    log.success("GET", request.originalUrl, request.clf, 200);
+                    log.success(
+                      request,
+                      200
+                    );
                     response.json([]);
                   } else {
                     recipes
                       .find({ _id: { $in: storedUserdataResult.savedRecipes.map((recipeId) => new mongo.ObjectID(recipeId)) } })
-                      .project(headerOverride(fields, (x) => x.reduce((a, b) => ((a[b] = 1), a), {})))
+                      .project(qry.headerOverride(fields, (x) => x.reduce((a, b) => ((a[b] = 1), a), {})))
                       .toArray((err, recipesResult) => {
                         // Strip result of any entries only containing _id
                         let recipesResultFiltered = qry.filterEmpty(recipesResult, fields.includes("_id"));
 
                         if (!err) {
-                          log.success("GET", request.originalUrl, request.clf, 200);
+                          log.success(
+                            request,
+                            200
+                          );
                           response.json(recipesResultFiltered);
                         } else {
-                          log.fail("GET", request.originalUrl, request.clf, 500, err);
+                          log.fail(
+                            request,
+                            500,
+                            err
+                          );
                           response.status(500).send({
                             status: 500,
                             message: "Internal database exception",
@@ -79,7 +77,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                       });
                   }
                 } else {
-                  log.fail("GET", request.originalUrl, request.clf, 500, err);
+                  log.fail(
+                    request,
+                    500,
+                    err
+                  );
                   response.status(500).send({
                     status: 500,
                     message: "Internal database exception",
@@ -89,9 +91,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             );
         } else {
           log.fail(
-            "GET",
-            request.originalUrl,
-            request.clf,
+            request,
             401,
             "A user is required for authorization for this action"
           );
@@ -101,7 +101,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
           });
         }
       } catch (err) {
-        log.fail("GET", request.originalUrl, request.clf, 500, err);
+        log.fail(
+          request,
+          500,
+          err
+        );
         response.status(500).send({
           status: 500,
           message: "Internal database exception",
