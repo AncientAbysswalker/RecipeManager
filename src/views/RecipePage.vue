@@ -16,6 +16,19 @@
             </div>        
         </div>
 
+         <!-- Modal Dialog -->
+        <ModalDialog
+            v-if="showModal"
+            titleText="Recipe Deletion"
+        >
+            <p slot="body">Are you sure you want to delete this recipe?</p>
+            <b slot="body">This cannot be reversed!</b>
+
+            <!-- Footer Buttons -->
+            <button slot="footer" @click="deleteRecipe">Delete</button>
+            <button slot="footer" @click="showModal=false">Go Back</button>
+        </ModalDialog>
+
         <!-- Side Edit/Toolkit Container -->
         <div class="edit__mode__tools" v-if="is_edit_mode">
             <v-tooltip left>
@@ -115,6 +128,8 @@
                         <v-icon v-if="!is_edit_mode && (tempMyRecipe || (this.fields.ownerId && this.$root.sessionInfo.userId === this.fields.ownerId))" class="edit__mode__top--item button__no__ripple" @click="()=>{this.is_edit_mode=true}">mdi-square-edit-outline</v-icon>
                         <v-icon v-else-if="!is_edit_mode && (this.$root.sessionInfo.userId !== this.fields.ownerId || !this.fields.ownerId)" class="edit__mode__top--item button__no__ripple" @click="()=>{this.is_edit_mode=true; this.fields._id=null}">mdi-content-copy</v-icon>
                         <v-icon v-else class="edit__mode__top--item button__no__ripple" @click="cleanAndSaveRecipeChanges">mdi-content-save</v-icon>
+                        <v-icon v-if="!is_edit_mode && (tempMyRecipe || (this.fields.ownerId && this.$root.sessionInfo.userId === this.fields.ownerId))" class="edit__mode__top--item button__no__ripple" @click="showModal=true">mdi-trash-can-outline</v-icon>
+                        <!-- && !tempMyRecipe && !savedToMyRecipes && (this.$root.sessionInfo.userId !== this.fields.ownerId || !this.fields.ownerId)-->
                     </div>
                 </div>
 
@@ -235,6 +250,7 @@ import InstructionCard from '../components/RecipePage/instruction-elements/Instr
 import IngredientCard from '../components/RecipePage/ingredient-elements/IngredientCard';
 import DeleteTagButton from '../components/RecipePage/common-elements/DeleteTagButton';
 import { InstructionTypeEnum } from '../components/RecipePage/instruction-elements/InstructionConstants';
+import ModalDialog from "../components/CommonComponents/ModalDialog.vue";
 //import { Carousel, Slide } from "vue-carousel";
 
 function array_move(arr, old_index, new_index) {
@@ -251,7 +267,8 @@ export default {
         InstructionCard,
         IngredientCard,
         draggable,
-        DeleteTagButton
+        DeleteTagButton,
+        ModalDialog
     },
     services: services,
     ImageStateEnum: {
@@ -261,6 +278,7 @@ export default {
     },
     InstructionTypeEnum: InstructionTypeEnum,
     data: () => ({
+        showModal: false,
         tempMyRecipe: false,
         savedToMyRecipes: false,
         fields: {
@@ -366,7 +384,7 @@ export default {
                 // If recipe exists [PUT] to DB, else [PUSH] to DB
                 if (this.fields._id !== null) {
                     axios
-                    .put(`${this.$options.services.url_api}/${this.$route.params.id}`, this.fields, {withCredentials: true})
+                    .put(`${this.$options.services.url_api}/${this.fields._id}`, this.fields, {withCredentials: true})
                     .then(res => {
                         console.log(res);
                         //end 'loading' here
@@ -379,12 +397,14 @@ export default {
                     axios
                     .post(`${this.$options.services.url_api}/`, this.fields, {withCredentials: true})
                     .then(res => {
+                        var newId = res.data._id;
                         console.log(res);
                         //end 'loading' here
-
+                        
                         this.tempMyRecipe = true;
                         this.is_edit_mode = false;
                         this.is_loading = false;
+                        this.fields._id = newId; // Set for other things that might need access to this...
                     })
                     .catch(err => console.log(err));
                 }
@@ -543,7 +563,7 @@ export default {
         },
         saveToMyRecipes() {
             axios
-                .put(`${this.$options.services.url_userdata}/saved-recipes/${this.$route.params.id}`, {isToBeSaved: true}, {withCredentials: true})
+                .put(`${this.$options.services.url_userdata}/saved-recipes/${this.fields._id}`, {isToBeSaved: true}, {withCredentials: true})
                 .then(res => {
                     this.savedToMyRecipes = true;
                 })
@@ -553,9 +573,19 @@ export default {
         },
         removeFromMyRecipes() {
             axios
-                .put(`${this.$options.services.url_userdata}/saved-recipes/${this.$route.params.id}`, {isToBeSaved: false}, {withCredentials: true})
+                .put(`${this.$options.services.url_userdata}/saved-recipes/${this.fields._id}`, {isToBeSaved: false}, {withCredentials: true})
                 .then(res => {
                     this.savedToMyRecipes = false;
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+        },
+        deleteRecipe() {
+            axios
+                .delete(`${this.$options.services.url_api}/${this.fields._id}`, {withCredentials: true})
+                .then(res => {
+                    this.$router.push('/');
                 })
                 .catch(err => {
                     console.log(err);
@@ -571,18 +601,15 @@ export default {
                 this.is_loading = true;
                 this.loading_text = "Loading Recipe";
                 axios
-                    .get(`${this.$options.services.url_api}/${this.$route.params.id}`, {withCredentials: true, credentials: 'include'})
+                    .get(`${this.$options.services.url_api}/${this.$route.params.id}`, {withCredentials: true})
                     .then(res => {
                         this.fields = res.data;
                         this.loaded_images = this.fields.images.map((src) => ({ uploadState: this.$options.ImageStateEnum.HOSTED, hostedSource: src }))
                         this.is_loading = false;
-                        console.log(this.fields);
-                        console.log(res);
 
                         axios
                             .get(`${this.$options.services.url_userdata}/saved-recipes/${this.$route.params.id}`, {withCredentials: true})
                             .then(res => {
-                                console.log('in?: '+res.data)
                                 this.savedToMyRecipes = res.data;
                             })
                             .catch(err => {

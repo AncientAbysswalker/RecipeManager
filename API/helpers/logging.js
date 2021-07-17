@@ -24,6 +24,11 @@ module.exports = (log_requests, log_errors, color_disabled) => {
     return module.req("[POST]", request, next);
   };
 
+  // Log timestamp and that a DELETE request is recieved to console. Return timestamp of request
+  module.req_delete = (request, response, next) => {
+    return module.req("[DELETE]", request, next);
+  };
+
   // Log timestamp and that request is recieved to console. Return timestamp of request
   module.req = (method, request, next) => {
     let clf_date = clf.date();

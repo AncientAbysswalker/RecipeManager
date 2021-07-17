@@ -24,6 +24,13 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
   let userdata = db.collection(userdata_collection);
 
   // Common functions
+  function setReqType(typeString) {
+    return function (request, response, next) {
+      request.typeString = typeString;
+      next();
+    }
+  }
+
   function isRecipeOwnerById(request, response, next) {
     if (request.session.loggedIn && request.session.userId) {
       try {
@@ -37,7 +44,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                 // If response is null or only the _id, respond 404
                 if (result === null) {
                   log.fail(
-                    "GET",
+                    request.typeString,
                     request.originalUrl,
                     request.clf,
                     404,
@@ -51,7 +58,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                   if (request.session.userId === result.ownerId || !result.hasOwnProperty('ownerId')) {
                     next(); //If session exists, and user is authorized
                   } else {
-                    log.fail("PUT", request.originalUrl, 0, 401, "User not authorized for action");
+                    log.fail(request.typeString, request.originalUrl, 0, 401, "User not authorized for action");
                     response.status(401).send({
                       status: 401,
                       message: "User not authorized for action",
@@ -59,7 +66,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                   }
                 }
               } else {
-                log.fail("GET", request.originalUrl, request.clf, 500, err);
+                log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
                 response.status(500).send({
                   status: 500,
                   message: "Internal database exception",
@@ -68,7 +75,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             }
           );
         } catch (err) {
-          log.fail("GET", request.originalUrl, request.clf, 500, err);
+          log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
           response.status(500).send({
             status: 500,
             message: "Internal database exception",
@@ -78,7 +85,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
         // If the wrong number of bytes is provided
       } catch (err) {
         log.fail(
-          "GET",
+          request.typeString,
           request.originalUrl,
           request.clf,
           400,
@@ -91,7 +98,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
         });
       }
     } else {
-      log.fail("PUT", request.originalUrl, 0, 401, "No user for authorized action");
+      log.fail(request.typeString, request.originalUrl, 0, 401, "No user for authorized action");
       response.status(401).send({
         status: 401,
         message: "A user is required for authorization for this action",
@@ -113,7 +120,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
 
   // ExpressJS Router
   router
-    .post("/", log.req_post, (request, response) => {
+    .post("/", setReqType("POST"), log.req_post, (request, response) => {
       // First confirm that we have a session!
       const loggedIn = request.session.loggedIn;
       const userId = request.session.userId;
@@ -154,10 +161,10 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                             }, (err, updatedUserdataResult) => {
                               if (!err) {
                                 // After saving to userdata, return recipeResult
-                                log.success("POST", request.originalUrl, request.clf, 201);
+                                log.success(request.typeString, request.originalUrl, request.clf, 201);
                                 response.status(201).send(recipeResult.ops[0]);
                               } else {
-                                log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                                log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
                                 response.status(500).send({
                                   status: 500,
                                   message: "Internal database exception",
@@ -166,7 +173,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                             }
                           );
                         } catch (err) {
-                          log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                          log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
                           response.status(500).send({
                             status: 500,
                             message: "Internal database exception",
@@ -187,10 +194,10 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                             (err, updatedUserdataResult) => {
                               if (!err) {
                                 // After saving to userdata, return recipeResult
-                                log.success("POST", request.originalUrl, request.clf, 201);
+                                log.success(request.typeString, request.originalUrl, request.clf, 201);
                                 response.status(201).send(recipeResult.ops[0]);
                               } else {
-                                log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                                log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
                                 response.status(500).send({
                                   status: 500,
                                   message: "Internal database exception",
@@ -199,7 +206,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                             }
                           );
                         } catch (err) {
-                          log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                          log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
                           response.status(500).send({
                             status: 500,
                             message: "Internal database exception",
@@ -207,7 +214,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                         }
                       }
                     } else {
-                      log.fail("GET", request.originalUrl, request.clf, 500, err);
+                      log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
                       response.status(500).send({
                         status: 500,
                         message: "Internal database exception",
@@ -216,14 +223,14 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                   }
                 );
               } catch (err) {
-                log.fail("GET", request.originalUrl, request.clf, 500, err);
+                log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
                 response.status(500).send({
                   status: 500,
                   message: "Internal database exception",
                 });
               }
             } else {
-              log.fail("POST", request.originalUrl, request.clf, 500, err);
+              log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
               response.status(500).send({
                 status: 500,
                 message: "Internal database exception",
@@ -231,14 +238,14 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             }
           });
         } catch (err) {
-          log.fail("POST", request.originalUrl, request.clf, 500, err);
+          log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
           response.status(500).send({
             status: 500,
             message: "Internal database exception",
           });
         }
       } else {
-        log.fail("POST", request.originalUrl, 0, 401, "User not authorized for action");
+        log.fail(request.typeString, request.originalUrl, 0, 401, "User not authorized for action");
         response.status(401).send({
           status: 401,
           message: "User not authorized for action",
@@ -247,7 +254,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     })
 
     // [GET] the data for all recipes, with optional filtering
-    .get("/", log.req_get, (request, response) => {
+    .get("/", setReqType("GET"), log.req_get, (request, response) => {
       try {
         // Ensure that the fields will always be a list
         let fields = qry.paramToList(request.query.fields);
@@ -262,11 +269,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
 
             if (!err) {
               if (result.length !== 0) {
-                log.success("GET", request.originalUrl, request.clf, 200);
+                log.success(request.typeString, request.originalUrl, request.clf, 200);
                 response.json(result);
               } else {
                 log.fail(
-                  "GET",
+                  request.typeString,
                   request.originalUrl,
                   request.clf,
                   404,
@@ -278,7 +285,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                 });
               }
             } else {
-              log.fail("GET", request.originalUrl, request.clf, 500, err);
+              log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
               response.status(500).send({
                 status: 500,
                 message: "Internal database exception",
@@ -286,7 +293,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             }
           });
       } catch (err) {
-        log.fail("GET", request.originalUrl, request.clf, 500, err);
+        log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
         response.status(500).send({
           status: 500,
           message: "Internal database exception",
@@ -295,7 +302,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
     })
 
     // [GET] the data for one recipe using its db id, with optional filtering
-    .get("/:id", log.req_get, (request, response) => {
+    .get("/:id", setReqType("GET"), log.req_get, (request, response) => {
       // First confirm that the id request is OK
       try {
         // Get the id in the appropriate format
@@ -312,7 +319,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                 // If response is null or only the _id, respond 404
                 if (result === null || Object.keys(result).length === 1) {
                   log.fail(
-                    "GET",
+                    request.typeString,
                     request.originalUrl,
                     request.clf,
                     404,
@@ -323,11 +330,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                     message: "The requested resource could not be found",
                   });
                 } else {
-                  log.success("GET", request.originalUrl, request.clf, 200);
+                  log.success(request.typeString, request.originalUrl, request.clf, 200);
                   response.json(result);
                 }
               } else {
-                log.fail("GET", request.originalUrl, request.clf, 500, err);
+                log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
                 response.status(500).send({
                   status: 500,
                   message: "Internal database exception",
@@ -336,7 +343,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             }
           );
         } catch (err) {
-          log.fail("GET", request.originalUrl, request.clf, 500, err);
+          log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
           response.status(500).send({
             status: 500,
             message: "Internal database exception",
@@ -346,7 +353,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
         // If the wrong number of bytes is provided
       } catch (err) {
         log.fail(
-          "GET",
+          request.typeString,
           request.originalUrl,
           request.clf,
           400,
@@ -362,7 +369,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
 
 
     // [PUT] the data for one recipe using its db id, with optional filtering
-    .put("/:id", log.req_put, isRecipeOwnerById, (request, response) => {
+    .put("/:id", setReqType("PUT"), log.req_put, isRecipeOwnerById, (request, response) => {
       // First confirm that the id request is OK
       try {
         // Build new entry from request body. Any fields not included will become null
@@ -389,7 +396,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                 // If response is null, no resource is found
                 if (result.modifiedCount === 0) {
                   log.fail(
-                    "PUT",
+                    request.typeString,
                     request.originalUrl,
                     request.clf,
                     404,
@@ -400,11 +407,11 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
                     message: "The requested resource could not be found",
                   });
                 } else {
-                  log.success("PUT", request.originalUrl, request.clf, 200);
+                  log.success(request.typeString, request.originalUrl, request.clf, 200);
                   response.json(result);
                 }
               } else {
-                log.fail("PUT", request.originalUrl, request.clf, 500, err);
+                log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
                 response.status(500).send({
                   status: 500,
                   message: "Internal database exception",
@@ -413,7 +420,7 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
             }
           );
         } catch (err) {
-          log.fail("PUT", request.originalUrl, request.clf, 500, err);
+          log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
           response.status(500).send({
             status: 500,
             message: "Internal database exception",
@@ -423,7 +430,70 @@ module.exports = (client, log_requests, log_errors, color_disabled) => {
         // If the wrong number of bytes is provided
       } catch (err) {
         log.fail(
-          "PUT",
+          request.typeString,
+          request.originalUrl,
+          request.clf,
+          400,
+          "The id provided must be a single string of 12 bytes or 24 hex characters"
+        );
+        response.status(400).send({
+          status: 400,
+          message:
+            "The id provided must be a single string of 12 bytes or 24 hex characters",
+        });
+      }
+    })
+
+
+    // [DELETE] the data for one recipe using its db id
+    .delete("/:id", setReqType("DELETE"), log.req_delete, isRecipeOwnerById, (request, response) => {
+      // First confirm that the id request is OK
+      try {
+        // Get the id in the appropriate format
+        let id = new mongo.ObjectID(request.params.id);
+        try {
+          recipes.deleteOne(
+            { _id: id },
+            (err, result) => {
+              if (!err) {
+                // If response is null or only the _id, respond 404
+                if (result === null) {
+                  log.fail(
+                    request.typeString,
+                    request.originalUrl,
+                    request.clf,
+                    404,
+                    "The requested resource could not be found"
+                  );
+                  response.status(404).send({
+                    status: 404,
+                    message: "The requested resource could not be found",
+                  });
+                } else {
+                  log.success(request.typeString, request.originalUrl, request.clf, 202);
+                  response.status(202).json(result);
+                }
+              } else {
+                log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
+                response.status(500).send({
+                  status: 500,
+                  message: "Internal database exception",
+                });
+              }
+            }
+          );
+        } catch (err) {
+          log.fail(request.typeString, request.originalUrl, request.clf, 500, err);
+          response.status(500).send({
+            status: 500,
+            message: "Internal database exception",
+          });
+        }
+
+        // If the wrong number of bytes is provided
+      } catch (err) {
+        log.fail(
+          request.typeString,
           request.originalUrl,
           request.clf,
           400,
