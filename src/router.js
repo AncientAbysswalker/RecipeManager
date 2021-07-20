@@ -12,6 +12,10 @@ export default new Router({
   routes: [
     {
       path: "/",
+      redirect: "/discover",
+    },
+    {
+      path: "/home",
       name: "home",
       component: HomePage,
     },

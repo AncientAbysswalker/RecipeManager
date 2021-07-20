@@ -24,7 +24,7 @@
 
       <!-- Middle Part of Header -->
       <div id="nav">
-        <router-link v-if="this.$root.sessionInfo !== null && this.$root.sessionInfo.loggedIn" to="/">Home</router-link> 
+        <router-link v-if="this.$root.sessionInfo !== null && this.$root.sessionInfo.loggedIn" to="/home">Home</router-link> 
         <span class="header__nav--divider" v-if="this.$root.sessionInfo !== null && this.$root.sessionInfo.loggedIn">|</span>
         <router-link to="/discover">Discover</router-link>
         <span class="header__nav--divider">|</span>
