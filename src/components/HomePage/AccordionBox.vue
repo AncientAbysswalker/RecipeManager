@@ -62,7 +62,6 @@ export default {
 
 <style scoped>
 .accordion__container {
-  background-color: red;
   overflow: hidden;
   transition: max-height 0.2s ease-out;
 }

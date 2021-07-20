@@ -24,8 +24,10 @@
 
       <!-- Middle Part of Header -->
       <div id="nav">
-        <router-link to="/">Home</router-link> |
-        <router-link to="/discover">Discover</router-link> |
+        <router-link v-if="this.$root.sessionInfo !== null && this.$root.sessionInfo.loggedIn" to="/">Home</router-link> 
+        <span class="header__nav--divider" v-if="this.$root.sessionInfo !== null && this.$root.sessionInfo.loggedIn">|</span>
+        <router-link to="/discover">Discover</router-link>
+        <span class="header__nav--divider">|</span>
         <router-link to="/about">About</router-link>
       </div>
       
@@ -41,9 +43,9 @@
         <v-icon>mdi-open-in-new</v-icon>
       </v-btn>                        -->
       <div>
-        <div v-if="this.$root.sessionInfo !== null && this.$root.sessionInfo.loggedIn" class="header__login-info">
-          <span>Logged in as {{this.$root.sessionInfo.username}}</span>
-          <span @click="logoutSession">Log Out</span>
+        <div v-if="this.$root.sessionInfo !== null && this.$root.sessionInfo.loggedIn" class="header__login-info anchor">
+          <span class="header__logout-text" @click="logoutSession">Log Out</span>
+          <span class="header__username">Logged in as {{this.$root.sessionInfo.username}}</span>
         </div>
         <div v-else-if="this.$root.sessionInfo !== null" class="header__login-info">
           <router-link to="/login">Log In</router-link>
@@ -75,13 +77,6 @@ export default {
   data: () => ({
     test: false
   }),
-  computed: {
-    myGlobalVariable: function () {
-        console.log('fuck')
-        console.log(this.$sessionInfo !== null ? this.$sessionInfo.loggedIn : false)
-        return this.$sessionInfo !== null ? this.$sessionInfo.loggedIn : false;
-    },
-  },
   watch: {
     '$route' (to, from) {
       this.checkSession();
@@ -146,6 +141,29 @@ export default {
 
 .header__login-info * {
   margin: 5px;
+}
+
+.header__logout-text {
+  cursor: pointer;
+  color: #1976D2;
+  text-decoration: underline;
+}
+
+.anchor {
+  position: relative;
+}
+
+.header__username {
+  white-space: nowrap; /* Prevent newline */
+  margin-top: 0px; /* Because floating */
+  position: absolute;
+  right: 100%; /* Just to Left of Right Side of Log In/Out */
+  text-align: right;
+}
+
+.header__nav--divider {
+  margin-left: 5px;
+  margin-right: 5px;
 }
 
 /* Add Fancy Font */

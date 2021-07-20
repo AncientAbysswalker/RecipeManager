@@ -617,8 +617,11 @@ export default {
                             })
                     })
                     .catch(err => {
-                        console.log(err);
-                        //this.$router.push('/');
+                        if (err.response.status === 404) {
+                            this.$router.push('/');   
+                        } else {
+                            console.log(err);
+                        }
                     })
             } else {
                 console.error("Invalid recipe id: 24-digit hex required");

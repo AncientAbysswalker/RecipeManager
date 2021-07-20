@@ -6,7 +6,6 @@
       <span ref="login-warn-username" class="login__page__warn-text hidden">Username or password is incorrect</span>
       <div class="anchor login__page__input__margin">
         <input class="login__page__input" :type="viewPassword ? 'text' : 'password'" placeholder="Enter Password" name="password" v-model="user.password" required>
-        <span ref="login-warn-password" class="login__page__warn-text hidden">Username or password is incorrect</span>
         <v-icon v-if="!viewPassword" @click="viewPassword=true" class="login__page__input__icon">mdi-eye-off</v-icon>
         <v-icon v-else @click="viewPassword=!viewPassword" class="login__page__input__icon">mdi-eye</v-icon>
       </div>
@@ -80,7 +79,7 @@ export default {
         .catch(err => {
           console.log(err)
           this.setWarning("login-warn-username", "login-input-username", "Username or password is incorrect");
-          this.setWarning("login-warn-password", "login-input-password", "");
+          this.setWarning(null, "login-input-password");
         });
     },
     handleSignup() {
@@ -148,15 +147,24 @@ export default {
       }
     },
     setWarning(refWarn, refInput, text) {
-      this.$refs[refWarn].classList.remove("hidden");
-      this.$refs[refInput].classList.add("login__page__input--invalid");
-      if (text) {
-        this.$refs[refWarn].innerText = text;
+      if (refWarn) {
+        this.$refs[refWarn].classList.remove("hidden");
+
+        if (text) {
+          this.$refs[refWarn].innerText = text;
+        }
+      }
+      if (refInput) {
+        this.$refs[refInput].classList.add("login__page__input--invalid");
       }
     },
     clearWarning(refWarn, refInput) {
-      this.$refs[refWarn].classList.add("hidden");
-      this.$refs[refInput].classList.remove("login__page__input--invalid");
+      if (refWarn) {
+        this.$refs[refWarn].classList.add("hidden");
+      }
+      if (refInput) {
+        this.$refs[refInput].classList.remove("login__page__input--invalid");
+      }
     },
   }
 };
