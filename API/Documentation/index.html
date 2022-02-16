@@ -1,58 +1,545 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>Form elements</title>
-    <style type="text/css" media="all">
-      body {
-        background: #bbe;
-      }
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+    <title>Raviolé - API Endpoint Specification</title>
+    
+    <!-- Meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+    <link rel="shortcut icon" href="favicon.ico"> 
+    
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome JS-->
+    <script defer src="assets/fontawesome/js/all.min.js"></script>
+    
+    <!-- Plugins CSS -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.2/styles/atom-one-dark.min.css">
+    <link rel="stylesheet" href="assets/plugins/simplelightbox/simple-lightbox.min.css">
 
-      ol li {
-        padding: 0.75em 0;
-      }
+    <!-- Theme CSS -->  
+    <link id="theme-style" rel="stylesheet" href="assets/css/theme.css">
+    <link id="theme-style" rel="stylesheet" href="assets/css/custom.css">
 
-      /*
-select {padding: 10px;}
-option {border: 1px solid red;}
-*/
-    </style>
-  </head>
-  <body>
-    <form action="" method="post">
-      <ol>
-        <li><input type="text" value="text_input" /> (text input)</li>
-        <li>
-          <input type="password" value="password_input" /> (password input)
-        </li>
-        <li><input type="radio" /> (radio input)</li>
-        <li><input type="checkbox" /> (checkbox input)</li>
-        <li><input type="button" value="button_input" /> (button input)</li>
-        <li><input type="image" src="" alt="image_input" /> (image input)</li>
-        <li><input type="file" /> (file input)</li>
-        <li>
-          <textarea rows="5" cols="40">textarea_element</textarea> (textarea)
-        </li>
-        <li>
-          <select>
-            <option>selectbox</option>
-            <option>option uno</option>
-            <option>option deux</option>
-            <option>option three</option>
-            <option>option D</option>
-            <option>option V</option>
-          </select>
-          (select)
-        </li>
-        <li><input type="submit" value="submit_input" /> (submit)</li>
-        <li><button>button_element</button> (button)</li>
-      </ol>
-    </form>
+</head> 
 
-    <ul>
-      <li>
-        Surfin' Safari:
-        <a href="http://webkit.org/blog/51/text-fields/">Text Fields</a>
-      </li>
-    </ul>
-  </body>
-</html>
+<body class="docs-page">    
+    <header class="header fixed-top">	    
+        <div class="branding docs-branding">
+            <div class="container-fluid position-relative py-2">
+                <div class="docs-logo-wrapper">
+					<button id="docs-sidebar-toggler" class="docs-sidebar-toggler docs-sidebar-visible me-2 d-xl-none" type="button">
+	                    <span></span>
+	                    <span></span>
+	                    <span></span>
+	                </button>
+	                <div class="site-logo navbar-brand"><img class="logo-icon me-2" src="assets/images/raviole.svg" alt="logo"><span class="logo-text">Raviolé<span class="text-alt"> API Endpoint Specification</span></span></div>    
+                </div><!--//docs-logo-wrapper-->
+            </div><!--//container-->
+        </div><!--//branding-->
+    </header><!--//header-->
+    
+    
+    <div class="docs-wrapper">
+	    <div id="docs-sidebar" class="docs-sidebar">
+		    <div class="top-search-box d-lg-none p-3">
+                <form class="search-form">
+		            <input type="text" placeholder="Search the docs..." name="search" class="form-control search-input">
+		            <button type="submit" class="btn search-btn" value="Search"><i class="fas fa-search"></i></button>
+		        </form>
+            </div>
+		    <nav id="docs-nav" class="docs-nav navbar">
+			    <ul class="section-items list-unstyled nav flex-column pb-3">
+				    <li class="nav-item section-title"><a class="nav-link scrollto active" href="#section-intro"><span class="theme-icon-holder me-2"><i class="fas fa-map-signs"></i></span>Introduction</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-recipe-obj">Recipe Object</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-collection-obj">Collections Object</a></li>
+				    <li class="nav-item section-title mt-3"><a class="nav-link scrollto" href="#section-uac"><span class="theme-icon-holder me-2"><i class="fas fa-user-check"></i></span>User Access Control</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-session-get">Get Session Status</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-signup-post">Create New User</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-login-post">Log In to Session</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-logout-post">Log Out of Session</a></li>
+				    <li class="nav-item section-title mt-3"><a class="nav-link scrollto" href="#section-recipes"><span class="theme-icon-holder me-2"><i class="fas fa-utensils"></i></span>Recipes</a></li>
+                    <li class="nav-item"><a class="nav-link scrollto" href="#item-recipes-get-all">Get All Recipes</a></li>
+                    <li class="nav-item"><a class="nav-link scrollto" href="#item-recipes-get-by-id">Get A Recipe By ID</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-recipes-post">Create A New Recipe</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-recipes-put">Update A Recipe By ID</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-recipes-delete">Delete A Recipe By ID</a></li>
+				    <li class="nav-item section-title mt-3"><a class="nav-link scrollto" href="#section-images"><span class="theme-icon-holder me-2"><i class="fas fa-camera"></i></span>Images</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-images-get">Retrieve An Image</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-images-post">Upload An Image</a></li>
+				    <li class="nav-item section-title mt-3"><a class="nav-link scrollto" href="#section-collections"><span class="theme-icon-holder me-2"><i class="fas fa-layer-group"></i></span>Collections</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-user-saved-get">Get All Saved Recipes</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-saved-get">Get All Saved Recipe IDs</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-saved-put">Update Saved Status</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-collections-get">Get All User Collection IDs</a></li>
+				    <li class="nav-item"><a class="nav-link scrollto" href="#item-collections-put">Set All User Collection IDs</a></li>
+			    </ul>
+
+		    </nav><!--//docs-nav-->
+	    </div><!--//docs-sidebar-->
+	    <div class="docs-content">
+		    <div class="container">
+			    <article class="docs-article" id="section-intro">
+				    <header class="docs-header">
+					    <h1 class="docs-heading">Introduction <span class="docs-time">Last updated: 2022-02-17</span></h1>
+					    <section class="docs-intro">
+						    <p>As part of my Raviolé recipe manager project I needed a method to store and retrieve recipes data. Over the course of the project the database and associated endpoints expanded and this documentation serves to outline its usage. The database has two fairly specific data types that are used, and these are outlined below.</p>
+						</section><!--//docs-intro-->
+					</header>
+					<section class="docs-section" id="item-recipe-obj">
+						<h2 class="section-heading">Recipe Object</h2>
+						<p>The Recipe Object is responsible for storing all of the information associated with the recipe. In the case of images, the image names (uploaded hash) are stored for referencing the CDN. An example of a Recipe Object is shown below. Note that the <b>owner</b> and <b>_id</b> properties are reserved, and trying to modify them will be ignored.</p>
+						<div class="docs-code-block">
+							<pre class="shadow-lg rounded"><code class="json hljs">{
+	<span class="hljs-attr">"_id"</span>: <span class="hljs-string">"60bc2199d45b8e03541ff799"</span>,
+	<span class="hljs-attr">"owner"</span>: <span class="hljs-string">"213bc9b8f7545e0609d991f4"</span>,
+	<span class="hljs-attr">"name"</span>: <span class="hljs-string">"Fried Eggs"</span>,
+	<span class="hljs-attr">"time_active"</span>: <span class="hljs-number">5</span>,
+	<span class="hljs-attr">"time_total"</span>: <span class="hljs-number">5</span>,
+	<span class="hljs-attr">"ingredients"</span>: [
+		{
+			<span class="hljs-attr">"name"</span>: <span class="hljs-string">"Egg"</span>, 
+			<span class="hljs-attr">"quantity"</span>: <span class="hljs-string">"2"</span>, 
+			<span class="hljs-attr">"unit"</span>: <span class="hljs-string">"Each"</span>
+		},
+		{
+			<span class="hljs-attr">"name"</span>: <span class="hljs-string">"Salt"</span>, 
+			<span class="hljs-attr">"quantity"</span>: <span class="hljs-string">"1/2"</span>, 
+			<span class="hljs-attr">"unit"</span>: <span class="hljs-string">"tsp"</span>
+		}
+	],
+	<span class="hljs-attr">"instructions"</span>: [
+		{
+			<span class="hljs-attr">"type"</span>: <span class="hljs-number">0</span>,
+			<span class="hljs-attr">"title"</span>: <span class="hljs-string">"Preparation"</span>,
+			<span class="hljs-attr">"contents"</span>: [
+				{
+					<span class="hljs-attr">"type"</span>: <span class="hljs-number">1</span>,
+					<span class="hljs-attr">"text"</span>: <span class="hljs-string">"Place eggs and salt into bowl, mixing until yolk and salt are fully integrated with whites."</span>,
+				}
+			]
+		},	
+		{
+			<span class="hljs-attr">"type"</span>: <span class="hljs-number">0</span>,
+			<span class="hljs-attr">"title"</span>: <span class="hljs-string">"Cooking"</span>,
+			<span class="hljs-attr">"contents"</span>: [
+				{
+					<span class="hljs-attr">"type"</span>: <span class="hljs-number">1</span>,
+					<span class="hljs-attr">"text"</span>: <span class="hljs-string">"Heat non-stick pan on medium heat. Pour egg mixture into pan, stirring continuously until cooked."</span>,
+				}
+			]
+		}	
+	],
+	<span class="hljs-attr">"images"</span>: [<span class="hljs-string">"fc8cf377-6056-476f-9597-6fef05f3c9b5.jpg"</span>],
+	<span class="hljs-attr">"tags"</span>: [<span class="hljs-string">"breakfast"</span>,<span class="hljs-string">"eggs"</span>],
+	<span class="hljs-attr">"yield"</span>: <span class="hljs-string">"1 meal"</span>
+}</code></pre>
+						</div>
+					</section>
+					<section class="docs-section" id="item-collection-obj">
+						<h2 class="section-heading">Collections Object</h2>
+						<p>The Collections Object is fairly straight-forward. The collections object consists of a key for every Collection name, with the value being a list of all recipe ids that the collection contains. An example is shown below.</p>
+						<div class="docs-code-block">
+							<pre class="shadow-lg rounded"><code class="json hljs">{
+	<span class="hljs-attr">"Collection 1"</span>: [
+		<span class="hljs-attr">"60bc2199d45b8e03541ff799"</span>, 
+		<span class="hljs-attr">"213bc9b8f7545e0609d991f4"</span>
+	],
+	<span class="hljs-attr">"Collection 2"</span>: [
+		<span class="hljs-attr">"997ff14530e8b54d9912cb06"</span>, 
+		<span class="hljs-attr">"4f199d9060e5457f8b9cb312"</span>
+	]
+}</code></pre>
+						</div>
+					</section>
+			    </article><!--//docs-article-->
+
+                <!-- UAC Endpoint -->
+                <article class="docs-article" id="section-uac">
+                    <header class="docs-header">
+                        <h1 class="docs-heading">User Access Control Endpoint</h1>
+                        <section class="docs-intro">
+                            <p>Several other API calls require for an active session to exist between the server and the user's local machine. Eash session is associated with a username that exists in the system. The following define the behavior for login, logout, signup, and checking session status.</p>
+                        </section><!--//docs-intro-->
+                    </header>
+                    <section class="docs-section endpoint-get" id="item-session-get">
+                        <div class="endpoint_method">
+                            <span class="endpoint_tag">GET</span><span><b>/session</b>Get the current session status</span>
+                        </div>
+                        <div class="endpoint_details">
+                            <p class="endpoint_param_header">Response</p>
+                            <div class="endpoint_parameter">
+                                <p><b>data</b>.loggedIn<code class="endpoint_parameter_datatype">bool</code></p>
+                                <p><b>data</b>.username<code class="endpoint_parameter_datatype">string</code></p>
+                                <p><b>data</b>.userId<code class="endpoint_parameter_datatype">string<12></code></p>
+                                <p>Current session status. If a session is active, the logged in user's username and id will also be returned.</p>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="docs-section endpoint-post" id="item-signup-post">
+                        <div class="endpoint_method">
+                            <span class="endpoint_tag">POST</span><span><b>/signup</b>Create a new user and log into a session with them</span>
+                        </div>
+                        <div class="endpoint_details">
+                            <p class="endpoint_param_header">Request Body</p>
+                            <div class="endpoint_parameter">
+                                <p><b>body</b>.username<code class="endpoint_parameter_datatype">string</code></p>
+                                <p><b>body</b>.password<code class="endpoint_parameter_datatype">string</code></p>
+                                <p><b>body</b>.email<code class="endpoint_parameter_datatype">string</code></p>
+                                <p>Username, password, and email to use to create a new user. Username and email will be checked to ensure they do not already exist.</p>
+                            </div>
+                            <p class="endpoint_param_header">Response</p>
+                            <div class="endpoint_parameter">
+                                <p><b>data</b>.loggedIn<code class="endpoint_parameter_datatype">bool</code></p>
+                                <p><b>data</b>.username<code class="endpoint_parameter_datatype">string</code></p>
+                                <p><b>data</b>.userId<code class="endpoint_parameter_datatype">string<12></code></p>
+                                <p>Current session status including the logged in user's username and id.</p>
+                                <p><b>Note: </b>The session is automatically created as part of this process.</p>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="docs-section endpoint-post" id="item-login-post">
+                        <div class="endpoint_method">
+                            <span class="endpoint_tag">POST</span><span><b>/login</b>Log into a session using a username and password</span>
+                        </div>
+                        <div class="endpoint_details">
+                            <p class="endpoint_param_header">Request Body</p>
+                            <div class="endpoint_parameter">
+                                <p><b>body</b>.username<code class="endpoint_parameter_datatype">string</code></p>
+                                <p><b>body</b>.password<code class="endpoint_parameter_datatype">string</code></p>
+                                <p>Username and password to use to log in and create a new session.</p>
+                            </div>
+                            <p class="endpoint_param_header">Response</p>
+                            <div class="endpoint_parameter">
+                                <p><b>data</b>.loggedIn<code class="endpoint_parameter_datatype">bool</code></p>
+                                <p><b>data</b>.username<code class="endpoint_parameter_datatype">string</code></p>
+                                <p><b>data</b>.userId<code class="endpoint_parameter_datatype">string<12></code></p>
+                                <p>Current session status including the logged in user's username and id.</p>
+                                <p><b>Note: </b>The session is automatically created as part of this process.</p>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="docs-section endpoint-post" id="item-logout-post">
+                        <div class="endpoint_method">
+                            <span class="endpoint_tag">POST</span><span><b>/logout</b>Log out of a session</span><span class="session_info"><i class="fas fa-user me-1"></i>Active Session Required</span>
+                        </div>
+                        <div class="endpoint_details">
+                            <p class="endpoint_param_header">Session Specific Info</p>
+                            <div class="endpoint_parameter">
+                                <p>A valid session must exist and be passed as part of the request headers. If a session exists in the headers, that session will be ended.</p>
+                            </div>
+                        </div>
+                    </section>
+                </article>
+
+                <!-- Recipes Endpoint -->
+			    <article class="docs-article" id="section-recipes">
+				    <header class="docs-header">
+                        <h1 class="docs-heading">Recipes Endpoint</h1>
+					    <section class="docs-intro">
+							<p>Responsible for all most recipe-related behavior. Recipes can be retrieved fully or in part, can be added, can be updated, and can be deleted. Most of these actions require an active session to execute for security.</p>
+						</section><!--//docs-intro-->
+				    </header>
+				    <section class="docs-section endpoint-get" id="item-recipes-get-all">
+                        <div class="endpoint_method">
+                            <span class="endpoint_tag">GET</span><span><b>/recipes{?optional_params}</b>Return a JSON representation of all recipes in the database</span>
+                        </div>
+                        <div class="endpoint_details">
+                            <p class="endpoint_param_header">Query Parameters</p>
+                            <div class="endpoint_parameter">
+                                <p><b>fields</b><code class="endpoint_parameter_datatype">string</code></p>
+                                <p>example:<code class="endpoint_parameter_example">tags, time_active, images, headers</code></p>
+                                <p>example usage:<code class="endpoint_parameter_example"><span class="endpoint_parameter_example-faded">/recipes/60bc2199d45b8e03541ff799</span>?fields=name&fields=tags</code></p>
+                                <br>
+                                <p>Any specific fields that should be returned by the query. Default if excluded is all fields. All properties of the RecipeObject are valid strings. The alias "headers" is also permitted, which indicates that the name, images, and tags should be returned.</p>
+                            </div>
+                            <p class="endpoint_param_header">Response</p>
+                            <div class="endpoint_parameter">
+                                <p><b>data</b><code class="endpoint_parameter_datatype">RecipeObject[]</code></p>
+                                <p>List of recipe objects, with any filtering from query parameters.</p>
+                            </div>
+                        </div>
+				    </section>
+                    <section class="docs-section endpoint-get" id="item-recipes-get-by-id">
+                        <div class="endpoint_method">
+                            <span class="endpoint_tag">GET</span><span><b>/recipes/{recipe_id}{?query_params}</b>Return a JSON representation of a single recipe in the database by its id</span>
+                        </div>
+                        <div class="endpoint_details">
+                            <p class="endpoint_param_header">Path Parameters</p>
+                            <div class="endpoint_parameter">
+                                <p><b>recipe_id</b><code class="endpoint_parameter_datatype">string <12 bytes></code></p>
+                                <p>example:<code class="endpoint_parameter_example">60bc2199d45b8e03541ff799</code></p>
+                                <p>example usage:<code class="endpoint_parameter_example"><span class="endpoint_parameter_example-faded">/recipes/</span>60bc2199d45b8e03541ff799</code></p>
+                                <br>
+                                <p>The database id of the recipe to be queried.</p>
+                            </div>
+                            <p class="endpoint_param_header">Query Parameters</p>
+                            <div class="endpoint_parameter">
+                                <p><b>fields</b><code class="endpoint_parameter_datatype">string</code></p>
+                                <p>example:<code class="endpoint_parameter_example">tags, time_active, images, headers</code></p>
+                                <p>example usage:<code class="endpoint_parameter_example"><span class="endpoint_parameter_example-faded">/recipes/60bc2199d45b8e03541ff799</span>?fields=name&fields=tags</code></p>
+                                <br>
+                                <p>Any specific fields that should be returned by the query. Default if excluded is all fields. All properties of the RecipeObject are valid strings. The alias "headers" is also permitted, which indicates that the name, images, and tags should be returned.</p>
+                            </div>
+                            <p class="endpoint_param_header">Response</p>
+                            <div class="endpoint_parameter">
+                                <p><b>data</b><code class="endpoint_parameter_datatype">RecipeObject</code></p>
+                                <p>Recipe object requested by its id, with any filtering from query parameters.</p>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="docs-section endpoint-post" id="item-recipes-post">
+                        <div class="endpoint_method">
+                            <span class="endpoint_tag">POST</span><span><b>/recipes</b>Create a new recipe in the database</span><span class="session_info"><i class="fas fa-user me-1"></i>Active Session Required</span>
+                        </div>
+                        <div class="endpoint_details">
+                            <p class="endpoint_param_header">Request Body</p>
+                            <div class="endpoint_parameter">
+                                <p><b>body</b><code class="endpoint_parameter_datatype">RecipeObject</code></p>
+                                <p>Recipe object to be added to the database. Properties of the recipe object should be properties of the request's body.</p>
+                            </div>
+                            <p class="endpoint_param_header">Response</p>
+                            <div class="endpoint_parameter">
+                                <p><b>data</b><code class="endpoint_parameter_datatype">RecipeObject</code></p>
+                                <p>The recipe object added to the database, which includes the id of the new recipe in the database.</p>
+                            </div>
+                            <p class="endpoint_param_header">Session Specific Info</p>
+                            <div class="endpoint_parameter">
+                                <p>A valid session must exist and be passed as part of the request headers or the request to add the recipe to the database will be rejected.</p>
+                                <p><b>Note: </b>As this action is linked to the active session and its user, the new recipe id will automatically be added to the user's saved recipes.</p>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="docs-section endpoint-put" id="item-recipes-put">
+                        <div class="endpoint_method">
+                            <span class="endpoint_tag">PUT</span><span><b>/recipes/{recipe_id}</b>Update a recipe in the database by its id</span><span class="session_info"><i class="fas fa-user me-1"></i>Active Session Required</span>
+                        </div>
+                        <div class="endpoint_details">
+                            <p class="endpoint_param_header">Path Parameters</p>
+                            <div class="endpoint_parameter">
+                                <p><b>recipe_id</b><code class="endpoint_parameter_datatype">string <12 bytes></code></p>
+                                <p>example:<code class="endpoint_parameter_example">60bc2199d45b8e03541ff799</code></p>
+                                <p>example usage:<code class="endpoint_parameter_example"><span class="endpoint_parameter_example-faded">/recipes/</span>60bc2199d45b8e03541ff799</code></p>
+                                <br>
+                                <p>The database id of the recipe to be queried.</p>
+                            </div>
+                            <p class="endpoint_param_header">Request Body</p>
+                            <div class="endpoint_parameter">
+                                <p><b>body</b><code class="endpoint_parameter_datatype">RecipeObject</code></p>
+                                <p>Recipe object to be added to the database. Properties of the recipe object should be properties of the request's body.</p>
+                            </div>
+                            <p class="endpoint_param_header">Response</p>
+                            <div class="endpoint_parameter">
+                                <p><b>data</b><code class="endpoint_parameter_datatype">RecipeObject</code></p>
+                                <p>The recipe object that was modified in the database.</p>
+                            </div>
+                            <p class="endpoint_param_header">Session Specific Info</p>
+                            <div class="endpoint_parameter">
+                                <p>A valid session must exist and be passed as part of the request headers or the request to modify the recipe in the database will be rejected.</p>
+                            </div>
+                        </div>
+                    </section> 
+                    <section class="docs-section endpoint-delete" id="item-recipes-delete">
+                        <div class="endpoint_method">
+                            <span class="endpoint_tag">DELETE</span><span><b>/recipes/{recipe_id}</b>Delete a recipe from the database by its id</span><span class="session_info"><i class="fas fa-user me-1"></i>Active Session Required</span>
+                        </div>
+                        <div class="endpoint_details">
+                            <p class="endpoint_param_header">Path Parameters</p>
+                            <div class="endpoint_parameter">
+                                <p><b>recipe_id</b><code class="endpoint_parameter_datatype">string <12 bytes></code></p>
+                                <p>example:<code class="endpoint_parameter_example">60bc2199d45b8e03541ff799</code></p>
+                                <p>example usage:<code class="endpoint_parameter_example"><span class="endpoint_parameter_example-faded">/recipes/</span>60bc2199d45b8e03541ff799</code></p>
+                                <br>
+                                <p>The database id of the recipe to be queried.</p>
+                            </div>
+                            <p class="endpoint_param_header">Response</p>
+                            <div class="endpoint_parameter">
+                                <p><b>data</b><code class="endpoint_parameter_datatype">RecipeObject</code></p>
+                                <p>The recipe object that was deleted from the database.</p>
+                            </div>
+                            <p class="endpoint_param_header">Session Specific Info</p>
+                            <div class="endpoint_parameter">
+                                <p>A valid session must exist and be passed as part of the request headers or the request to modify the recipe in the database will be rejected.</p>
+                            </div>
+                        </div>
+                    </section>
+				</article><!--//docs-article-->
+				
+				<!-- Images Endpoint -->
+			    <article class="docs-article" id="section-images">
+					<header class="docs-header">
+						<h1 class="docs-heading">Images Endpoint</h1>
+						<section class="docs-intro">
+							<p>The images endpoint acts as a Content Delivery Network - enabling images to be uploaded and retrieved.</p>
+						</section><!--//docs-intro-->
+					</header>
+					<section class="docs-section endpoint-get" id="item-images-get">
+						<div class="endpoint_method">
+							<span class="endpoint_tag">GET</span><span><b>/images/{image}</b>Return an image from the database</span>
+						</div>
+						<div class="endpoint_details">
+							<p class="endpoint_param_header">Query Parameters</p>
+							<div class="endpoint_parameter">
+								<p><b>image</b><code class="endpoint_parameter_datatype">string</code></p>
+								<p>example:<code class="endpoint_parameter_example">fc8cf377-6056-476f-9597-6fef05f3c9b5.jpg</code></p>
+								<p>example usage:<code class="endpoint_parameter_example"><span class="endpoint_parameter_example-faded">/images/</span>fc8cf377-6056-476f-9597-6fef05f3c9b5.jpg</code></p>
+								<br>
+								<p>The database location of the image to be returned.</p>
+							</div>
+						</div>
+					</section>
+					<section class="docs-section endpoint-post" id="item-images-post">
+						<div class="endpoint_method">
+							<span class="endpoint_tag">POST</span><span><b>/images/upload</b>Upload new images to the database</span>
+						</div>
+						<div class="endpoint_details">
+							<p class="endpoint_param_header">Form Data</p>
+							<div class="endpoint_parameter">
+								<p>The images to be uploaded must be added to a list, which must be added to a FormData object under property <b>images</b>. This FormData object is passed to the query to upload the images.</p>
+							</div>
+						</div>
+					</section>
+				</article><!--//docs-article-->
+
+				<!-- Collections Endpoint -->
+			    <article class="docs-article" id="section-collections">
+					<header class="docs-header">
+						<h1 class="docs-heading">Collections Endpoint</h1>
+						<section class="docs-intro">
+							<p>When recipes are created they are created with an owner. In addition to owning recipes, a user can save recipes created by others. Thus there is a subset of all recipes that are linked to that user through either ownership or saving. Collections extend this to allow the user to make named groups of recipes for quick reference, like "Favorite Breakfasts".</p>
+						</section><!--//docs-intro-->
+					</header>
+					<section class="docs-section endpoint-get" id="item-user-saved-get">
+						<div class="endpoint_method">
+							<span class="endpoint_tag">GET</span><span><b>/user-saved-recipes{?optional_params}</b>Return a JSON representation of all recipes owned by the user</span><span class="session_info"><i class="fas fa-user me-1"></i>Active Session Required</span>
+						</div>
+						<div class="endpoint_details">
+							<p class="endpoint_param_header">Query Parameters</p>
+							<div class="endpoint_parameter">
+								<p><b>fields</b><code class="endpoint_parameter_datatype">string</code></p>
+								<p>example:<code class="endpoint_parameter_example">tags, time_active, images, headers</code></p>
+								<p>example usage:<code class="endpoint_parameter_example"><span class="endpoint_parameter_example-faded">/user-saved-recipes</span>?fields=name&fields=tags</code></p>
+								<br>
+                                <p>Any specific fields that should be returned by the query. Default if excluded is all fields. All properties of the RecipeObject are valid strings. The alias "headers" is also permitted, which indicates that the name, images, and tags should be returned.</p>
+							</div>
+							<p class="endpoint_param_header">Response</p>
+							<div class="endpoint_parameter">
+								<p><b>data</b><code class="endpoint_parameter_datatype">RecipeObject[]</code></p>
+								<p>List of recipe objects, with any filtering from query parameters.</p>
+							</div>
+							<p class="endpoint_param_header">Session Specific Info</p>
+                            <div class="endpoint_parameter">
+                                <p>A valid session must exist and be passed as part of the request headers or no data will be returned.</p>
+                            </div>
+						</div>
+					</section>
+					<section class="docs-section endpoint-get" id="item-saved-get">
+						<div class="endpoint_method">
+							<span class="endpoint_tag">GET</span><span><b>/userdata/saved-recipes/{recipe_id}</b>Return whether a recipe is saved by the user</span><span class="session_info"><i class="fas fa-user me-1"></i>Active Session Required</span>
+						</div>
+						<div class="endpoint_details">
+							<p class="endpoint_param_header">Path Parameters</p>
+							<div class="endpoint_parameter">
+								<p><b>recipe_id</b><code class="endpoint_parameter_datatype">string <12 bytes></code></p>
+								<p>example:<code class="endpoint_parameter_example">60bc2199d45b8e03541ff799</code></p>
+								<p>example usage:<code class="endpoint_parameter_example"><span class="endpoint_parameter_example-faded">/userdata/saved-recipes/</span>60bc2199d45b8e03541ff799</code></p>
+								<br>
+								<p>The database id of the recipe to be queried.</p>
+							</div>
+							<p class="endpoint_param_header">Response</p>
+							<div class="endpoint_parameter">
+								<p><b>data</b><code class="endpoint_parameter_datatype">bool</code></p>
+								<p>Whether or not the user linked to the session has saved this recipe.</p>
+							</div>
+							<p class="endpoint_param_header">Session Specific Info</p>
+							<div class="endpoint_parameter">
+								<p>A valid session must exist and be passed as part of the request headers or false will always be returned.</p>
+							</div>
+						</div>
+					</section>
+					<section class="docs-section endpoint-put" id="item-saved-put">
+						<div class="endpoint_method">
+							<span class="endpoint_tag">PUT</span><span><b>/userdata/saved-recipes/{recipe_id}</b>Set whether a recipe is saved by the user</span><span class="session_info"><i class="fas fa-user me-1"></i>Active Session Required</span>
+						</div>
+						<div class="endpoint_details">
+							<p class="endpoint_param_header">Path Parameters</p>
+							<div class="endpoint_parameter">
+								<p><b>recipe_id</b><code class="endpoint_parameter_datatype">string <12 bytes></code></p>
+								<p>example:<code class="endpoint_parameter_example">60bc2199d45b8e03541ff799</code></p>
+								<p>example usage:<code class="endpoint_parameter_example"><span class="endpoint_parameter_example-faded">/userdata/saved-recipes/</span>60bc2199d45b8e03541ff799</code></p>
+								<br>
+								<p>The database id of the recipe to be queried.</p>
+							</div>
+							<p class="endpoint_param_header">Request Body</p>
+							<div class="endpoint_parameter">
+								<p><b>body</b><code class="endpoint_parameter_datatype">bool</code></p>
+								<p>Whether the recipe identified by the provided id should be considered as saved for the user associated with the active session.</p>
+							</div>
+							<p class="endpoint_param_header">Session Specific Info</p>
+							<div class="endpoint_parameter">
+								<p>A valid session must exist and be passed as part of the request headers or the request will be rejected.</p>
+							</div>
+						</div>
+					</section>
+					<section class="docs-section endpoint-get" id="item-collections-get">
+						<div class="endpoint_method">
+							<span class="endpoint_tag">GET</span><span><b>/userdata/collections</b>Return the collections of the user</span><span class="session_info"><i class="fas fa-user me-1"></i>Active Session Required</span>
+						</div>
+						<div class="endpoint_details">
+							<p class="endpoint_param_header">Response</p>
+							<div class="endpoint_parameter">
+								<p><b>data</b>.userCollections<code class="endpoint_parameter_datatype">Collections</code></p>
+								<p>Mapping of collections that the user has defined.</p>
+							</div>
+							<p class="endpoint_param_header">Session Specific Info</p>
+							<div class="endpoint_parameter">
+								<p>A valid session must exist and be passed as part of the request headers or an empty JSON object will always be returned.</p>
+							</div>
+						</div>
+					</section>
+					<section class="docs-section endpoint-put" id="item-collections-put">
+						<div class="endpoint_method">
+							<span class="endpoint_tag">PUT</span><span><b>/userdata/collections</b>Overwrite the collections for the user</span><span class="session_info"><i class="fas fa-user me-1"></i>Active Session Required</span>
+						</div>
+						<div class="endpoint_details">
+							<p class="endpoint_param_header">Request Body</p>
+							<div class="endpoint_parameter">
+								<p><b>body</b><code class="endpoint_parameter_datatype">Collections</code></p>
+								<p>Mapping of collections for the user. Will overwrite the previous state. Handling for adding, modifying, and deleting collections is handled client-side.</p>
+							</div>
+							<p class="endpoint_param_header">Session Specific Info</p>
+							<div class="endpoint_parameter">
+								<p>A valid session must exist and be passed as part of the request headers or the request will be rejected.</p>
+							</div>
+						</div>
+					</section>
+				</article><!--//docs-article-->
+			    <footer class="footer">
+				    <div class="container text-center py-5">
+				        <small class="copyright">Based Loosely on Template By <a href="https://themes.3rdwavemedia.com/" target="_blank">3rd Wave Media</a></small>
+				    </div>
+			    </footer>
+		    </div> 
+	    </div>
+    </div><!--//docs-wrapper-->
+   
+       
+    <!-- Javascript -->          
+    <script src="assets/plugins/popper.min.js"></script>
+    <script src="assets/plugins/bootstrap/js/bootstrap.min.js"></script>  
+    
+    
+    <!-- Page Specific JS -->
+    <script src="assets/plugins/smoothscroll.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.8/highlight.min.js"></script>
+    <script src="assets/js/highlight-custom.js"></script> 
+    <script src="assets/plugins/simplelightbox/simple-lightbox.min.js"></script>      
+    <script src="assets/plugins/gumshoe/gumshoe.polyfills.min.js"></script> 
+    <script src="assets/js/docs.js"></script> 
+
+</body>
+</html> 
+

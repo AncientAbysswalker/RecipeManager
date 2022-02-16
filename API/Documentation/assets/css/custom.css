@@ -1,0 +1,47 @@
+.endpoint_method{position:relative;padding:0.5rem;border:2px solid transparent;border-radius:.25rem}.endpoint-heading{color:inherit}.endpoint-link{font-weight:700}.endpoint-dismissible{padding-right:3rem}
+.endpoint_method * {margin-right:0.75rem}
+.session_info{float:right;margin:0.25rem;}
+.endpoint_tag{display:inline-block;text-align:center;width:4.5rem;padding:.25rem .5rem;font-size:1rem;border-radius:0.2rem;}
+.endpoint_param_header{font-size:1.25rem;font-weight:600;margin-bottom:0.5rem;}
+.endpoint_parameter{border:1px solid;border-radius:0.2rem;padding:0.5rem;}
+.endpoint_parameter:not(:last-child){margin-bottom:1rem;}
+.endpoint_parameter code{margin-left:0.75rem;margin-right:0.75rem;}
+.endpoint_parameter_example{border:1px solid;font-weight:700;}
+.endpoint_parameter_example-faded{font-weight:400;}
+.endpoint_details{padding:0.5rem;margin:0 0.5rem;border:2px solid;border-top:0px;border-radius:0 0 0.3rem 0.3rem;}
+
+.endpoint-get{color:#375c8c;border-color:#cee0f9;}
+.endpoint-get .endpoint_method{color:#375c8c;background-color:#deebfb;border-color:#cee0f9}
+.endpoint-get .endpoint_tag{color:white;background-color:#5b99ea;border-color:#5b99ea}
+.endpoint-get .endpoint_parameter{border-color:#cee0f9;}
+.endpoint-get .endpoint_parameter_datatype{background-color:#deebfb;}
+.endpoint-get .endpoint_parameter_example-faded{color:#cee0f9;}
+.endpoint-get .endpoint_parameter_example{background-color:white;border-color:#cee0f9;color:#375c8c;}
+.endpoint-get .endpoint_details{border-color:#cee0f9;}
+
+.endpoint-post{color:#376b47;border-color:#cee8d6;}
+.endpoint-post .endpoint_method{color:#376b47;background-color:#def0e4;border-color:#cee8d6}
+.endpoint-post .endpoint_tag{color:white;background-color:#5cb377;border-color:#5cb377}
+.endpoint-post .endpoint_parameter{border-color:#cee8d6;}
+.endpoint-post .endpoint_parameter_datatype{background-color:#def0e4;}
+.endpoint-post .endpoint_parameter_example-faded{color:#cee8d6;}
+.endpoint-post .endpoint_parameter_example{background-color:white;border-color:#cee8d6;color:#376b47;}
+.endpoint-post .endpoint_details{border-color:#cee8d6;}
+
+.endpoint-put{color:#5f4c1a;border-color:#faecc6;}
+.endpoint-put .endpoint_method{color:#5f4c1a;background-color:#fcf2d9;border-color:#faecc6}
+.endpoint-put .endpoint_tag{color:white;background-color:#eebf41;border-color:#eebf41}
+.endpoint-put .endpoint_parameter{border-color:#faecc6;}
+.endpoint-put .endpoint_parameter_datatype{background-color:#fcf2d9;}
+.endpoint-put .endpoint_parameter_example-faded{color:#faecc6;}
+.endpoint-put .endpoint_parameter_example{background-color:white;border-color:#faecc6;color:#5f4c1a;}
+.endpoint-put .endpoint_details{border-color:#faecc6;}
+
+.endpoint-delete{color:#7e413f;border-color:#f2d3d2;}
+.endpoint-delete .endpoint_method{color:#7e413f;background-color:#f6e2e1;border-color:#f2d3d2}
+.endpoint-delete .endpoint_tag{color:white;background-color:#d26d69;border-color:#d26d69}
+.endpoint-delete .endpoint_parameter{border-color:#f2d3d2;}
+.endpoint-delete .endpoint_parameter_datatype{background-color:#f6e2e1;}
+.endpoint-delete .endpoint_parameter_example-faded{color:#f2d3d2;}
+.endpoint-delete .endpoint_parameter_example{background-color:white;border-color:#f2d3d2;color:#7e413f;}
+.endpoint-delete .endpoint_details{border-color:#f2d3d2;}
