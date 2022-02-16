@@ -1,19 +1,23 @@
 const express = require("express");
 const app = express();
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
+const session = require('express-session');
 
 // Load config
 const config = require("./mongo_config");
 
-// Allow Cross-Origin
 var allowCrossDomain = function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Origin', 'http:\/\/app.raviole.cerberus-heuristics.com');// '50.92.225.75');
+  res.header('Access-Control-Allow-Credentials', true);
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-PINGOTHER,X-Requested-With, Content-Type, Accept');
   next();
 }
 app.use(allowCrossDomain)
 
 // Use body-parser to parse the body af a request
 let bodyParser = require("body-parser");
-app.use(bodyParser.json());
 app.use(session({
   secret: '136c67657614311f32238751044a0a3c0294f2a521e573afa8e496992d3786ba', // This is a personal project, so I'm not concerned about the secret being visibla at this point!
   name: 'sessionId',
@@ -21,6 +25,10 @@ app.use(session({
   saveUninitialized: false
 }));
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 
 // Parse args for process
 let p_args = process.argv.slice(2);
