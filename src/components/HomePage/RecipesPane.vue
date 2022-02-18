@@ -241,15 +241,6 @@ export default {
         this.dialogInputEditReference = "";
       }
     },
-    addCollection() {
-      console.log(this.recipeCollections)
-      if (!this.recipeCollections.hasOwnProperty("New Category!")) {
-        this.$set(this.recipeCollections, "New Category!", ["60bc2199d45b8e03541ff799", "60c02d57d45b8e03541ff79b"]);
-        this.showModal = true;
-      } else {
-        this.recipeCollections["New Category!"].push("60c2cc8ad45b8e03541ff79c");
-      }
-    },
     categoricalRecipes(categoricalRecipeIds) {
       return this.recipeHeaders.filter((item) => (categoricalRecipeIds.includes(item._id)));
     },

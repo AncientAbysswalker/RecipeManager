@@ -27,8 +27,8 @@
         <router-link v-if="this.$root.sessionInfo !== null && this.$root.sessionInfo.loggedIn" to="/home">Home</router-link> 
         <span class="header__nav--divider" v-if="this.$root.sessionInfo !== null && this.$root.sessionInfo.loggedIn">|</span>
         <router-link to="/discover">Discover</router-link>
-        <span class="header__nav--divider">|</span>
-        <router-link to="/about">About</router-link>
+        <!-- <span class="header__nav--divider">|</span>
+        <router-link to="/about">About</router-link> -->
       </div>
       
       <v-spacer></v-spacer>

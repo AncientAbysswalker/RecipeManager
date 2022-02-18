@@ -37,7 +37,7 @@
             </div>
 
             <!-- Empty List Placeholder -->  
-            <p class="element__text text--grey empty--phantom" key="phantom-text">This Numbered List is Empty</p>
+            <p class="element__text text--grey empty--phantom" key="phantom-text">This List is Empty</p>
         </draggable>
 
         <!-- Add Button -->

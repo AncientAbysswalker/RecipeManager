@@ -78,7 +78,6 @@ export default {
 <style scoped>
   .searchbar {
     padding: 5px;
-    border-bottom: solid 1px red;
   }
   .searchbar__element {
     background-color: #FFF1B3;

@@ -1,6 +1,6 @@
 <template>
     <div class="instruction__card__container">
-        <input class="element__hdr instruction__card__header" :disabled="!isEditMode" v-model="cardData.title" :placeholder="isEditMode ? 'Instruction Card Title' : ''" />
+        <input class="element__hdr instruction__card__header" :disabled="!isEditMode" v-model="cardData.title" :placeholder="isEditMode ? 'Ingredient Card Title' : ''" />
         <div class="ruled__paper">
             <IngredientContainer
                 :elementData="cardData"
