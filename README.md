@@ -40,7 +40,7 @@ If one is not logged in, they can click on this area to either log in or create 
 
 The main page of the application is the Discover page. In this page you can discover recipes made by other users and click on them to view the details. Currently this page just displays all recipes in the database, but the idea is that down the line this page would be updated and database pagination would be used to make sure that this page is not handling too much data.
 
-
+![Discover](https://raw.githubusercontent.com/AncientAbysswalker/RecipeManager/master/readme/discover.png)
 
 #### Creating a Recipe
 To create a new recipe you navigate to the Home page and click on the Add New Recipe button in the top right.
